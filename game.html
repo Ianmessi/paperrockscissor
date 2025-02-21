@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors | Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="game-page">
+    <a href="index.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Menu
+    </a>
+    <div class="game-container">
+        <h1>Rock Paper Scissors</h1>
+        
+        <!-- Game Mode Selection -->
+        <div id="gameModeSelection">
+            <h2>Select Number of Rounds</h2>
+            <div class="mode-buttons">
+                <button onclick="startGame(5)" class="mode-button">5 Rounds</button>
+                <button onclick="startGame(10)" class="mode-button">10 Rounds</button>
+                <button onclick="startGame(15)" class="mode-button">15 Rounds</button>
+            </div>
+        </div>
+
+        <!-- Game Area (initially hidden) -->
+        <div id="gameArea" style="display: none;">
+            <p>Choose your move and test your luck!</p>
+            <div class="score-board">
+                <div class="score-item">
+                    <i class="fas fa-trophy"></i> Wins: <span id="wins">0</span>
+                </div>
+                <div class="score-item">
+                    <i class="fas fa-times"></i> Losses: <span id="losses">0</span>
+                </div>
+                <div class="score-item">
+                    <i class="fas fa-equals"></i> Draws: <span id="draws">0</span>
+                </div>
+                <div class="rounds-left">
+                    Rounds Left: <span id="roundsLeft">0</span>
+                </div>
+            </div>
+
+            <div class="choices">
+                <button onclick="playGame('Rock')">Rock</button>
+                <button onclick="playGame('Paper')">Paper</button>
+                <button onclick="playGame('Scissors')">Scissors</button>
+            </div>
+
+            <div class="results" id="results"></div>
+        </div>
+
+        <!-- Final Result (initially hidden) -->
+        <div id="finalResult" class="final-result" style="display: none;">
+            <h2>Game Over!</h2>
+            <div id="finalScore"></div>
+            <div id="winnerAnnouncement" class="winner-announcement"></div>
+            <button onclick="resetGame()" class="play-again-button">Play Again</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Made with <i class="fas fa-heart" style="color: #ff4d4d;"></i> for endless fun!</p>
+    </footer>
+
+    <script src="game.js"></script>
+</body>
+</html> 

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews | Rock Paper Scissors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="reviews-page">
+    <a href="index.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Menu
+    </a>
+    <div class="reviews-container">
+        <h1>Game Reviews</h1>
+        
+        <div class="review-form">
+            <h2>Write a Review</h2>
+            <form id="reviewForm">
+                <input type="text" id="name" placeholder="Your Name" required>
+                <textarea id="review" placeholder="Write your review here..." required></textarea>
+                <button type="submit">Post Review</button>
+            </form>
+        </div>
+
+        <div class="reviews-list" id="reviewsList">
+            <!-- Reviews will be displayed here -->
+        </div>
+    </div>
+
+    <script src="reviews.js"></script>
+</body>
+</html> 
