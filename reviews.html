@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reviews | Rock Paper Scissors</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="reviews-page">
@@ -19,10 +19,14 @@
             <h2>Write a Review</h2>
             <form id="reviewForm">
                 <input type="text" id="name" placeholder="Your Name" required>
-                <textarea id="review" placeholder="Write your review here..." required></textarea>
+                <textarea id="review" placeholder="Share your thoughts about the game..." required></textarea>
                 <button type="submit">Post Review</button>
             </form>
         </div>
+
+        <button class="show-reviews-btn" onclick="toggleReviews()">
+            <i class="fas fa-comments"></i> Show Reviews
+        </button>
 
         <div class="reviews-list" id="reviewsList">
             <!-- Reviews will be displayed here -->

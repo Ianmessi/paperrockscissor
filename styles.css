@@ -373,22 +373,24 @@ footer p {
 }
 
 .reviews-container {
-    background: rgba(255, 255, 255, 0.9);
     max-width: 800px;
     margin: 40px auto;
-    padding: 40px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 30px;
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .review-form {
     margin-bottom: 40px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .review-form input,
-.review-form textarea,
-.contact-form input,
-.contact-form textarea {
+.review-form textarea {
     width: 100%;
     padding: 12px;
     margin: 10px 0;
@@ -397,15 +399,13 @@ footer p {
     font-size: 1rem;
 }
 
-.review-form textarea,
-.contact-form textarea {
+.review-form textarea {
     min-height: 100px;
     resize: vertical;
 }
 
-.review-form button,
-.contact-form button {
-    background: #007BFF;
+.submit-review {
+    background: #1a73e8;
     color: white;
     padding: 12px 24px;
     border: none;
@@ -415,39 +415,218 @@ footer p {
     transition: all 0.3s ease;
 }
 
-.review-form button:hover,
-.contact-form button:hover {
-    background: #0056b3;
-    transform: translateY(-2px);
-}
-
-.reviews-list {
-    margin-top: 40px;
+.submit-review:hover {
+    background: #1557b0;
 }
 
 .review-item {
-    background: #f8f9fa;
+    background: white;
     padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
-.review-item h3 {
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+}
+
+.reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1a73e8;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.reviewer-name {
+    color: #1a73e8;
+    font-size: 1.1rem;
+    font-weight: 600;
     margin: 0;
-    color: #007BFF;
+    text-align: left;
 }
 
-.review-item p {
-    margin: 10px 0 0;
+.review-date {
     color: #666;
+    font-size: 0.8rem;
 }
 
-/* Contact Form Styles */
+.review-content {
+    text-align: left;
+    padding: 10px 0;
+    margin-left: 50px; /* Aligns with the name */
+    color: #000;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.review-actions {
+    margin-left: 50px;
+    display: flex;
+    gap: 15px;
+}
+
+.review-button {
+    background: none;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #666;
+    border-radius: 5px;
+}
+
+.review-button:hover {
+    background: #f0f2f5;
+}
+
+.reply-button {
+    color: #1a73e8;
+}
+
+.delete-review {
+    color: #dc3545;
+}
+
+.replies-container {
+    margin-left: 50px;
+    margin-top: 10px;
+}
+
+.reply-form {
+    display: none;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.reply-form.show {
+    display: flex;
+}
+
+.reply-input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.reply-submit {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.replies-list {
+    margin-top: 10px;
+}
+
+.replies-list.hidden {
+    display: none;
+}
+
+.reply-item {
+    background: #f0f2f5;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.reply-text {
+    color: #c41e3a;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.show-replies {
+    color: #1a73e8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+/* Updated Contact Form Styles */
 .contact-form {
     margin-top: 40px;
-    padding: 20px;
+    padding: 30px;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.contact-form h3 {
+    color: #1a73e8;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: #333;
+    font-family: 'Roboto', sans-serif;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: #1a73e8;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+    color: #999;
+}
+
+.contact-form textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.contact-form button {
+    background: #1a73e8;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.contact-form button:hover {
+    background: #1557b0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+}
+
+.contact-form button:active {
+    transform: translateY(0);
 }
 
 /* Add these new styles */
@@ -562,4 +741,34 @@ footer p {
 
 .final-result h2 {
     color: black;
+}
+
+/* Add these new styles and update existing ones */
+.show-reviews-btn {
+    background: #1a73e8;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+}
+
+.show-reviews-btn:hover {
+    background: #1557b0;
+    transform: translateY(-2px);
+}
+
+.show-reviews-btn i {
+    margin-right: 8px;
+}
+
+.reviews-list {
+    display: none; /* Hidden by default */
+}
+
+.reviews-list.show {
+    display: block; /* Shows when active */
 }
