@@ -1,11 +1,30 @@
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA1yMW3ixCViH8DT9J3JxutLV1EHSh5vAY",
+  authDomain: "rock-paper-scissors-game-fb9c7.firebaseapp.com",
+  projectId: "rock-paper-scissors-game-fb9c7",
+  storageBucket: "rock-paper-scissors-game-fb9c7.firebasestorage.app",
+  messagingSenderId: "112666661002",
+  appId: "1:112666661002:web:757106430dd7eb6a975d73",
+  measurementId: "G-3738SVHBEJ"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 document.addEventListener('DOMContentLoaded', () => {
     const reviewForm = document.getElementById('reviewForm');
     const reviewsList = document.getElementById('reviewsList');
 
-    // Load existing reviews when page loads
+    // Load existing reviews
     loadReviews();
 
-    reviewForm.addEventListener('submit', (e) => {
+    reviewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const name = document.getElementById('name').value.trim();
@@ -17,123 +36,109 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Generate a unique ID for the reviewer
-        const reviewerId = generateReviewerId(name);
+        const reviewerId = `${name}-${Date.now()}`;
         
-        // Save the review with reviewer ID
-        saveReview(name, review, reviewerId);
-        
-        // Store the current user's ID in localStorage
-        localStorage.setItem('currentReviewer', reviewerId);
+        // Save the review
+        await saveReview(name, review, reviewerId);
         
         // Clear form
         reviewForm.reset();
     });
 
-    function generateReviewerId(name) {
-        return `${name}-${Date.now()}`;
+    async function saveReview(name, review, reviewerId) {
+        try {
+            await addDoc(collection(db, "reviews"), {
+                reviewerId: reviewerId,
+                name: name,
+                review: review,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                timestamp: Date.now() // for ordering
+            });
+            loadReviews();
+        } catch (error) {
+            console.error("Error adding review: ", error);
+            alert('Error posting review. Please try again.');
+        }
     }
 
-    function saveReview(name, review, reviewerId) {
-        // Get existing reviews
-        let reviews = JSON.parse(localStorage.getItem('gameReviews') || '[]');
-        
-        // Create new review object
-        const newReview = {
-            id: Date.now().toString(),
-            reviewerId: reviewerId,
-            name: name,
-            review: review,
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString()
-        };
-        
-        // Add to beginning of array
-        reviews.unshift(newReview);
-        
-        // Save to localStorage
-        localStorage.setItem('gameReviews', JSON.stringify(reviews));
-        
-        // Refresh display
-        loadReviews();
-    }
-
-    function loadReviews() {
-        const reviews = JSON.parse(localStorage.getItem('gameReviews') || '[]');
-        const currentReviewer = localStorage.getItem('currentReviewer');
-        
-        reviewsList.innerHTML = '';
-        
-        reviews.forEach(review => {
-            const canDelete = review.reviewerId === currentReviewer;
+    async function loadReviews() {
+        try {
+            reviewsList.innerHTML = '<div class="loading">Loading reviews...</div>';
             
-            const reviewElement = document.createElement('div');
-            reviewElement.className = 'review-item';
-            reviewElement.innerHTML = `
-                <div class="review-header">
-                    <div class="reviewer-avatar">
-                        ${review.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div class="review-info">
-                        <h3 class="reviewer-name">${review.name}</h3>
-                        <div class="review-date">${review.date} at ${review.time}</div>
-                    </div>
+            // Create query to order reviews by timestamp
+            const q = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
+            
+            reviewsList.innerHTML = '';
+            
+            querySnapshot.forEach((doc) => {
+                const review = doc.data();
+                const reviewElement = createReviewElement(doc.id, review);
+                reviewsList.appendChild(reviewElement);
+            });
+
+            // Show reviews after loading
+            reviewsList.classList.add('show');
+            updateShowReviewsButton();
+        } catch (error) {
+            console.error("Error loading reviews: ", error);
+            reviewsList.innerHTML = '<div class="error">Error loading reviews. Please try again later.</div>';
+        }
+    }
+
+    function createReviewElement(docId, review) {
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        div.innerHTML = `
+            <div class="review-header">
+                <div class="reviewer-avatar">
+                    ${review.name.charAt(0).toUpperCase()}
                 </div>
-                
-                <div class="review-content">${review.review}</div>
-                
-                ${canDelete ? `
-                    <div class="review-actions">
-                        <button class="review-button delete-review" onclick="deleteReview('${review.id}', '${review.reviewerId}')">
-                            Delete
-                        </button>
-                    </div>
-                ` : ''}
-            `;
-            
-            reviewsList.appendChild(reviewElement);
-        });
-
-        // Show reviews list after loading new reviews
-        document.getElementById('reviewsList').classList.add('show');
-        const showReviewsBtn = document.querySelector('.show-reviews-btn');
-        showReviewsBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Reviews';
+                <div class="review-info">
+                    <h3 class="reviewer-name">${review.name}</h3>
+                    <div class="review-date">${review.date} at ${review.time}</div>
+                </div>
+            </div>
+            <div class="review-content">${review.review}</div>
+            ${review.reviewerId === localStorage.getItem('currentReviewer') ? `
+                <div class="review-actions">
+                    <button class="review-button delete-review" onclick="deleteReview('${docId}', '${review.reviewerId}')">
+                        Delete
+                    </button>
+                </div>
+            ` : ''}
+        `;
+        return div;
     }
 
-    // Make delete function available globally
-    window.deleteReview = function(reviewId, reviewerId) {
-        const currentReviewer = localStorage.getItem('currentReviewer');
-        
-        // Check if the current user has permission to delete
-        if (currentReviewer !== reviewerId) {
+    // Make functions available globally
+    window.deleteReview = async function(docId, reviewerId) {
+        if (reviewerId !== localStorage.getItem('currentReviewer')) {
             alert('You can only delete your own reviews');
             return;
         }
 
-        // Get existing reviews
-        let reviews = JSON.parse(localStorage.getItem('gameReviews') || '[]');
-        
-        // Filter out the review to delete
-        reviews = reviews.filter(review => review.id !== reviewId);
-        
-        // Save back to localStorage
-        localStorage.setItem('gameReviews', JSON.stringify(reviews));
-        
-        // Refresh display
-        loadReviews();
+        try {
+            await deleteDoc(doc(db, "reviews", docId));
+            loadReviews();
+        } catch (error) {
+            console.error("Error deleting review: ", error);
+            alert('Error deleting review. Please try again.');
+        }
     };
 
-    // Add this at the end of your existing reviews.js file
     window.toggleReviews = function() {
-        const reviewsList = document.getElementById('reviewsList');
-        const showReviewsBtn = document.querySelector('.show-reviews-btn');
-        
         reviewsList.classList.toggle('show');
-        
-        // Update button text based on state
+        updateShowReviewsButton();
+    };
+
+    function updateShowReviewsButton() {
+        const showReviewsBtn = document.querySelector('.show-reviews-btn');
         if (reviewsList.classList.contains('show')) {
             showReviewsBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Reviews';
         } else {
             showReviewsBtn.innerHTML = '<i class="fas fa-comments"></i> Show Reviews';
         }
-    };
+    }
 }); 
