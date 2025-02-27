@@ -17,11 +17,47 @@
         
         <!-- Game Mode Selection -->
         <div id="gameModeSelection">
+            <h2>Select Game Mode</h2>
+            <div class="mode-buttons">
+                <button onclick="selectGameMode('singleplayer')" class="mode-button">
+                    <i class="fas fa-user"></i> Single Player
+                </button>
+                <button onclick="selectGameMode('multiplayer')" class="mode-button">
+                    <i class="fas fa-users"></i> Multiplayer
+                </button>
+            </div>
+        </div>
+
+        <!-- Rounds Selection (initially hidden) -->
+        <div id="roundsSelection" style="display: none;">
             <h2>Select Number of Rounds</h2>
             <div class="mode-buttons">
                 <button onclick="startGame(5)" class="mode-button">5 Rounds</button>
                 <button onclick="startGame(10)" class="mode-button">10 Rounds</button>
                 <button onclick="startGame(15)" class="mode-button">15 Rounds</button>
+            </div>
+        </div>
+
+        <!-- Multiplayer Room (initially hidden) -->
+        <div id="multiplayerRoom" style="display: none;">
+            <div id="roomCreation">
+                <h2>Multiplayer Room</h2>
+                <div class="room-options">
+                    <button onclick="createRoom()" class="mode-button">Create Room</button>
+                    <div class="join-room">
+                        <input type="text" id="roomCode" placeholder="Enter Room Code">
+                        <button onclick="joinRoom()" class="mode-button">Join Room</button>
+                    </div>
+                </div>
+            </div>
+            <div id="waitingRoom" style="display: none;">
+                <h3>Waiting Room</h3>
+                <p>Room Code: <span id="displayRoomCode"></span></p>
+                <p>Share this code with your friend to join the game</p>
+                <div class="player-status">
+                    <p>Players: <span id="playerCount">1/2</span></p>
+                    <div id="waitingMessage">Waiting for opponent...</div>
+                </div>
             </div>
         </div>
 
@@ -65,6 +101,7 @@
         <p>Made with <i class="fas fa-heart" style="color: #ff4d4d;"></i> for endless fun!</p>
     </footer>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script src="game.js"></script>
 </body>
 </html> 

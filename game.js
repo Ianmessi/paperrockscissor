@@ -1,6 +1,70 @@
 let wins = 0, losses = 0, draws = 0;
 let totalRounds = 0;
 let roundsPlayed = 0;
+let gameMode = '';
+let socket;
+let currentRoom = '';
+let isPlayer1 = false;
+
+function selectGameMode(mode) {
+    gameMode = mode;
+    document.getElementById('gameModeSelection').style.display = 'none';
+    
+    if (mode === 'singleplayer') {
+        document.getElementById('roundsSelection').style.display = 'block';
+    } else {
+        document.getElementById('multiplayerRoom').style.display = 'block';
+        initializeMultiplayer();
+    }
+}
+
+function initializeMultiplayer() {
+    socket = io();
+
+    socket.on('roomCreated', (roomCode) => {
+        currentRoom = roomCode;
+        document.getElementById('roomCreation').style.display = 'none';
+        document.getElementById('waitingRoom').style.display = 'block';
+        document.getElementById('displayRoomCode').textContent = roomCode;
+        isPlayer1 = true;
+    });
+
+    socket.on('joinedRoom', (roomCode) => {
+        currentRoom = roomCode;
+        document.getElementById('roomCreation').style.display = 'none';
+        document.getElementById('waitingRoom').style.display = 'block';
+        document.getElementById('displayRoomCode').textContent = roomCode;
+        isPlayer1 = false;
+    });
+
+    socket.on('gameReady', () => {
+        document.getElementById('playerCount').textContent = '2/2';
+        document.getElementById('waitingMessage').textContent = 'Game starting...';
+        setTimeout(() => startGame(5), 1500);
+    });
+
+    socket.on('roundResult', ({ moves, result }) => {
+        const [player1Move, player2Move] = moves;
+        const playerMove = isPlayer1 ? player1Move : player2Move;
+        const opponentMove = isPlayer1 ? player2Move : player1Move;
+        
+        updateMultiplayerResult(playerMove, opponentMove, result);
+    });
+
+    socket.on('playerLeft', () => {
+        alert('Your opponent has left the game');
+        resetGame();
+    });
+}
+
+function createRoom() {
+    socket.emit('createRoom');
+}
+
+function joinRoom() {
+    const roomCode = document.getElementById('roomCode').value.toUpperCase();
+    socket.emit('joinRoom', roomCode);
+}
 
 function startGame(rounds) {
     totalRounds = rounds;
@@ -70,6 +134,14 @@ function showFinalResult() {
 function playGame(playerChoice) {
     if (roundsPlayed >= totalRounds) return;
 
+    if (gameMode === 'singleplayer') {
+        playSinglePlayer(playerChoice);
+    } else {
+        playMultiplayer(playerChoice);
+    }
+}
+
+function playSinglePlayer(playerChoice) {
     const computerChoice = getRandomChoice();
     const result = determineWinner(playerChoice, computerChoice);
 
@@ -83,24 +155,67 @@ function playGame(playerChoice) {
 
     roundsPlayed++;
     updateScores();
+    displayResult(playerChoice, computerChoice, result);
 
+    if (roundsPlayed >= totalRounds) {
+        setTimeout(showFinalResult, 1000);
+    }
+}
+
+function playMultiplayer(playerChoice) {
+    socket.emit('move', { roomCode: currentRoom, move: playerChoice });
+    disableChoices();
+}
+
+function updateMultiplayerResult(playerMove, opponentMove, result) {
+    let displayResult;
+    if (result === 'draw') {
+        draws++;
+        displayResult = "It's a draw!";
+    } else if ((result === 'player1' && isPlayer1) || (result === 'player2' && !isPlayer1)) {
+        wins++;
+        displayResult = "You win!";
+    } else {
+        losses++;
+        displayResult = "Opponent wins!";
+    }
+
+    roundsPlayed++;
+    updateScores();
+    displayResult(playerMove, opponentMove, displayResult);
+    enableChoices();
+
+    if (roundsPlayed >= totalRounds) {
+        setTimeout(showFinalResult, 1000);
+    }
+}
+
+function disableChoices() {
+    const buttons = document.querySelectorAll('.choices button');
+    buttons.forEach(button => button.disabled = true);
+}
+
+function enableChoices() {
+    const buttons = document.querySelectorAll('.choices button');
+    buttons.forEach(button => button.disabled = false);
+}
+
+function displayResult(playerChoice, opponentChoice, result) {
     const resultsDiv = document.getElementById("results");
-    
-    // Remove any existing result classes
     resultsDiv.classList.remove('win', 'lose', 'draw');
     
-    // Add appropriate class based on result
     if (result === "You win!") {
         resultsDiv.classList.add('win');
-    } else if (result === "Computer wins!") {
+    } else if (result.includes("wins!")) {
         resultsDiv.classList.add('lose');
     } else {
         resultsDiv.classList.add('draw');
     }
 
+    const opponentLabel = gameMode === 'singleplayer' ? "Computer's" : "Opponent's";
     resultsDiv.innerHTML = `
         <p><strong>Your choice:</strong> ${playerChoice}</p>
-        <p><strong>Computer's choice:</strong> ${computerChoice}</p>
+        <p><strong>${opponentLabel} choice:</strong> ${opponentChoice}</p>
         <p><strong>Result:</strong> ${result}</p>
     `;
     resultsDiv.classList.add("fade-in");
@@ -108,10 +223,6 @@ function playGame(playerChoice) {
     setTimeout(() => {
         resultsDiv.classList.remove("fade-in");
     }, 500);
-
-    if (roundsPlayed >= totalRounds) {
-        setTimeout(showFinalResult, 1000);
-    }
 }
 
 function resetGame() {
