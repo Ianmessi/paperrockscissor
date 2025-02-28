@@ -1,6 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -16,6 +17,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 document.addEventListener('DOMContentLoaded', () => {
     const reviewForm = document.getElementById('reviewForm');
@@ -24,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
 
     // Auth state observer
-    firebase.auth().onAuthStateChanged((user) => {
+    onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
             document.getElementById('userName').textContent = user.displayName || user.email;
@@ -38,6 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     showReviewsBtn.addEventListener('click', () => {
         reviewsList.classList.toggle('show');
         showReviewsBtn.textContent = reviewsList.classList.contains('show') ? 'Hide Reviews' : 'Show All Reviews';
+        if (reviewsList.classList.contains('show')) {
+            loadReviews(); // Reload reviews when showing
+        }
     });
 
     // Handle review submission
@@ -66,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             reviewForm.reset();
             loadReviews();
+            reviewsList.classList.add('show'); // Show reviews after posting
+            showReviewsBtn.textContent = 'Hide Reviews';
             alert('Review posted successfully!');
         } catch (error) {
             console.error("Error adding review: ", error);

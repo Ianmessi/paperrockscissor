@@ -50,16 +50,36 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
-    
     <!-- Firebase Config -->
-    <script src="firebase-config.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1yMW3ixCViH8DT9J3JxutLV1EHSh5vAY",
+            authDomain: "rock-paper-scissors-game-fb9c7.firebaseapp.com",
+            projectId: "rock-paper-scissors-game-fb9c7",
+            storageBucket: "rock-paper-scissors-game-fb9c7.firebasestorage.app",
+            messagingSenderId: "112666661002",
+            appId: "1:112666661002:web:757106430dd7eb6a975d73",
+            measurementId: "G-3738SVHBEJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.app = app;
+        window.auth = auth;
+        window.db = db;
+    </script>
     
     <!-- Auth Check -->
-    <script src="auth-check.js"></script>
+    <script type="module" src="auth-check.js"></script>
     
     <!-- Reviews JavaScript -->
     <script type="module" src="reviews.js"></script>
