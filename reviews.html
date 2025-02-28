@@ -6,9 +6,12 @@
     <title>Reviews | Rock Paper Scissors</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="reviews-page">
-    <a href="index.html" class="back-button">Back to Home</a>
+    <a href="index.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
     
     <div class="reviews-container">
         <h2>Game Reviews</h2>
@@ -36,16 +39,21 @@
             </form>
         </div>
 
+        <!-- Show/Hide Reviews Button -->
+        <button id="showReviewsBtn" class="show-reviews-btn">
+            <i class="fas fa-comments"></i> Show All Reviews
+        </button>
+
         <!-- Reviews List -->
-        <div id="reviewsList" class="reviews-list show">
+        <div id="reviewsList" class="reviews-list">
             <!-- Reviews will be loaded here -->
         </div>
     </div>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
     
     <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
@@ -54,6 +62,6 @@
     <script src="auth-check.js"></script>
     
     <!-- Reviews JavaScript -->
-    <script src="reviews.js"></script>
+    <script type="module" src="reviews.js"></script>
 </body>
 </html> 

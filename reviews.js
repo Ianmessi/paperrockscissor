@@ -17,72 +17,74 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Firebase review functionality
-let currentUser = null;
-
-// Auth state observer
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        currentUser = user;
-        loadReviews(); // Load reviews when user is authenticated
-    } else {
-        window.location.href = 'login.html';
-    }
-});
-
 document.addEventListener('DOMContentLoaded', () => {
     const reviewForm = document.getElementById('reviewForm');
     const reviewsList = document.getElementById('reviewsList');
+    const showReviewsBtn = document.getElementById('showReviewsBtn');
+    let currentUser = null;
 
-    // Load existing reviews
-    loadReviews();
+    // Auth state observer
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('userName').textContent = user.displayName || user.email;
+            loadReviews(); // Load reviews when user is authenticated
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
 
+    // Show/Hide reviews button
+    showReviewsBtn.addEventListener('click', () => {
+        reviewsList.classList.toggle('show');
+        showReviewsBtn.textContent = reviewsList.classList.contains('show') ? 'Hide Reviews' : 'Show All Reviews';
+    });
+
+    // Handle review submission
     reviewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const name = document.getElementById('name').value.trim();
-        const review = document.getElementById('review').value.trim();
+        const reviewText = document.getElementById('reviewText').value.trim();
+        const rating = document.getElementById('rating').value;
 
-        if (!name || !review) {
-            alert('Please fill in both name and review');
+        if (!reviewText || !rating) {
+            alert('Please fill in both the review and rating');
             return;
         }
 
-        // Generate a unique ID for the reviewer
-        const reviewerId = `${name}-${Date.now()}`;
-        
-        // Save the review
-        await saveReview(name, review, reviewerId);
-        
-        // Clear form
-        reviewForm.reset();
-    });
-
-    async function saveReview(name, review, reviewerId) {
         try {
             await addDoc(collection(db, "reviews"), {
-                reviewerId: reviewerId,
-                name: name,
-                review: review,
+                userId: currentUser.uid,
+                userName: currentUser.displayName || currentUser.email,
+                userPhoto: currentUser.photoURL,
+                review: reviewText,
+                rating: parseInt(rating),
+                timestamp: new Date().toISOString(),
                 date: new Date().toLocaleDateString(),
-                time: new Date().toLocaleTimeString(),
-                timestamp: Date.now() // for ordering
+                time: new Date().toLocaleTimeString()
             });
+            
+            reviewForm.reset();
             loadReviews();
+            alert('Review posted successfully!');
         } catch (error) {
             console.error("Error adding review: ", error);
             alert('Error posting review. Please try again.');
         }
-    }
+    });
 
     async function loadReviews() {
         try {
             reviewsList.innerHTML = '<div class="loading">Loading reviews...</div>';
             
-            // Create query to order reviews by timestamp
             const q = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
             const querySnapshot = await getDocs(q);
             
+            if (querySnapshot.empty) {
+                reviewsList.innerHTML = '<div class="no-reviews">No reviews yet. Be the first to review!</div>';
+                return;
+            }
+
             reviewsList.innerHTML = '';
             
             querySnapshot.forEach((doc) => {
@@ -91,9 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 reviewsList.appendChild(reviewElement);
             });
 
-            // Show reviews after loading
-            reviewsList.classList.add('show');
-            updateShowReviewsButton();
         } catch (error) {
             console.error("Error loading reviews: ", error);
             reviewsList.innerHTML = '<div class="error">Error loading reviews. Please try again later.</div>';
@@ -103,55 +102,54 @@ document.addEventListener('DOMContentLoaded', () => {
     function createReviewElement(docId, review) {
         const div = document.createElement('div');
         div.className = 'review-item';
+        
+        // Create star rating display
+        const stars = '⭐'.repeat(review.rating);
+        
+        // Format date and time
+        const reviewDate = new Date(review.timestamp);
+        const formattedDate = reviewDate.toLocaleDateString();
+        const formattedTime = reviewDate.toLocaleTimeString();
+
         div.innerHTML = `
             <div class="review-header">
                 <div class="reviewer-avatar">
-                    ${review.name.charAt(0).toUpperCase()}
+                    ${review.userPhoto ? 
+                        `<img src="${review.userPhoto}" alt="${review.userName}" style="width: 40px; height: 40px; border-radius: 50%;">` :
+                        review.userName.charAt(0).toUpperCase()}
                 </div>
                 <div class="review-info">
-                    <h3 class="reviewer-name">${review.name}</h3>
-                    <div class="review-date">${review.date} at ${review.time}</div>
+                    <h3 class="reviewer-name">${review.userName}</h3>
+                    <div class="review-date">${formattedDate} at ${formattedTime}</div>
+                    <div class="rating">${stars}</div>
                 </div>
             </div>
             <div class="review-content">${review.review}</div>
-            ${review.reviewerId === localStorage.getItem('currentReviewer') ? `
+            ${currentUser && review.userId === currentUser.uid ? `
                 <div class="review-actions">
-                    <button class="review-button delete-review" onclick="deleteReview('${docId}', '${review.reviewerId}')">
-                        Delete
-                    </button>
+                    <button class="delete-review" onclick="deleteReview('${docId}')">Delete</button>
                 </div>
             ` : ''}
         `;
         return div;
     }
 
-    // Make functions available globally
-    window.deleteReview = async function(docId, reviewerId) {
-        if (reviewerId !== localStorage.getItem('currentReviewer')) {
-            alert('You can only delete your own reviews');
-            return;
-        }
-
-        try {
-            await deleteDoc(doc(db, "reviews", docId));
-            loadReviews();
-        } catch (error) {
-            console.error("Error deleting review: ", error);
-            alert('Error deleting review. Please try again.');
+    // Make delete function available globally
+    window.deleteReview = async function(docId) {
+        if (confirm('Are you sure you want to delete this review?')) {
+            try {
+                await deleteDoc(doc(db, "reviews", docId));
+                loadReviews();
+                alert('Review deleted successfully!');
+            } catch (error) {
+                console.error("Error deleting review: ", error);
+                alert('Error deleting review. Please try again.');
+            }
         }
     };
 
-    window.toggleReviews = function() {
-        reviewsList.classList.toggle('show');
-        updateShowReviewsButton();
-    };
-
-    function updateShowReviewsButton() {
-        const showReviewsBtn = document.querySelector('.show-reviews-btn');
-        if (reviewsList.classList.contains('show')) {
-            showReviewsBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Reviews';
-        } else {
-            showReviewsBtn.innerHTML = '<i class="fas fa-comments"></i> Show Reviews';
-        }
+    // Initial load of reviews
+    if (currentUser) {
+        loadReviews();
     }
 }); 
