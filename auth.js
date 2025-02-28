@@ -1,96 +1,123 @@
-// Auth state observer
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        // User is signed in
-        window.location.href = 'index.html';
+// Initialize Firebase Auth
+const auth = firebase.auth();
+
+// DOM Elements
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const errorMessage = document.getElementById('errorMessage');
+const showRegisterLink = document.getElementById('showRegister');
+const showLoginLink = document.getElementById('showLogin');
+const googleLoginBtn = document.getElementById('googleLogin');
+const forgotPasswordLink = document.getElementById('forgotPassword');
+
+// Show/Hide Forms
+showRegisterLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.style.display = 'none';
+    registerForm.style.display = 'block';
+    errorMessage.style.display = 'none';
+});
+
+showLoginLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.style.display = 'block';
+    registerForm.style.display = 'none';
+    errorMessage.style.display = 'none';
+});
+
+// Login Form Submit
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const rememberMe = document.getElementById('remember').checked;
+
+    try {
+        if (rememberMe) {
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        } else {
+            await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+        }
+        
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = 'index.html'; // Redirect to home page after successful login
+    } catch (error) {
+        showError(error.message);
     }
 });
 
-function showTab(tabName) {
-    document.getElementById('loginForm').style.display = tabName === 'login' ? 'block' : 'none';
-    document.getElementById('registerForm').style.display = tabName === 'register' ? 'block' : 'none';
-    
-    // Update active tab
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-    });
-    event.target.classList.add('active');
-}
-
-function showError(message) {
-    const errorDiv = document.getElementById('errorMessage');
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-    setTimeout(() => {
-        errorDiv.style.display = 'none';
-    }, 3000);
-}
-
-async function login() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    try {
-        await firebase.auth().signInWithEmailAndPassword(email, password);
-        // Redirect is handled by the auth state observer
-    } catch (error) {
-        showError(error.message);
-    }
-}
-
-async function register() {
+// Register Form Submit
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
-    const username = document.getElementById('registerUsername').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password !== confirmPassword) {
+        showError('Passwords do not match');
+        return;
+    }
 
     try {
-        // Create user
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        
-        // Add username to user profile
-        await userCredential.user.updateProfile({
-            displayName: username
-        });
-
-        // Create user data in database
-        await firebase.database().ref('users/' + userCredential.user.uid).set({
-            username: username,
-            email: email,
-            stats: {
-                gamesPlayed: 0,
-                wins: 0,
-                losses: 0,
-                draws: 0
-            }
-        });
-
-        // Redirect is handled by the auth state observer
+        await auth.createUserWithEmailAndPassword(email, password);
+        window.location.href = 'index.html'; // Redirect to home page after successful registration
     } catch (error) {
         showError(error.message);
     }
-}
+});
 
-async function googleSignIn() {
+// Google Sign In
+googleLoginBtn.addEventListener('click', async () => {
     const provider = new firebase.auth.GoogleAuthProvider();
     try {
-        const result = await firebase.auth().signInWithPopup(provider);
-        
-        // Check if this is a new user
-        const isNewUser = result.additionalUserInfo.isNewUser;
-        if (isNewUser) {
-            // Create user data in database
-            await firebase.database().ref('users/' + result.user.uid).set({
-                username: result.user.displayName,
-                email: result.user.email,
-                stats: {
-                    gamesPlayed: 0,
-                    wins: 0,
-                    losses: 0,
-                    draws: 0
-                }
-            });
-        }
+        await auth.signInWithPopup(provider);
+        window.location.href = 'index.html'; // Redirect to home page after successful Google sign-in
     } catch (error) {
         showError(error.message);
     }
-} 
+});
+
+// Forgot Password
+forgotPasswordLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+
+    if (!email) {
+        showError('Please enter your email address');
+        return;
+    }
+
+    try {
+        await auth.sendPasswordResetEmail(email);
+        showError('Password reset email sent! Please check your inbox.', 'success');
+    } catch (error) {
+        showError(error.message);
+    }
+});
+
+// Show Error Message
+function showError(message, type = 'error') {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+    
+    if (type === 'success') {
+        errorMessage.style.background = 'rgba(46, 204, 113, 0.2)';
+        errorMessage.style.border = '1px solid rgba(46, 204, 113, 0.5)';
+    } else {
+        errorMessage.style.background = 'rgba(231, 76, 60, 0.2)';
+        errorMessage.style.border = '1px solid rgba(231, 76, 60, 0.5)';
+    }
+
+    // Hide error message after 5 seconds
+    setTimeout(() => {
+        errorMessage.style.display = 'none';
+    }, 5000);
+}
+
+// Check Authentication State
+auth.onAuthStateChanged((user) => {
+    if (user && window.location.pathname.includes('login.html')) {
+        // If user is signed in and on login page, redirect to home
+        window.location.href = 'index.html';
+    }
+}); 
