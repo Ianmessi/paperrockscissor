@@ -5,48 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reviews | Rock Paper Scissors</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="reviews-page">
-    <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Menu
-    </a>
+    <a href="index.html" class="back-button">Back to Home</a>
+    
     <div class="reviews-container">
-        <h1>Game Reviews</h1>
+        <h2>Game Reviews</h2>
         
+        <!-- User Welcome Section -->
+        <div class="user-welcome">
+            <span>Welcome, <span id="userName" class="user-name"></span></span>
+            <button onclick="signOut()" class="auth-button">Sign Out</button>
+        </div>
+
+        <!-- Review Form -->
         <div class="review-form">
-            <h2>Write a Review</h2>
+            <h3>Write a Review</h3>
             <form id="reviewForm">
-                <input type="text" id="name" placeholder="Your Name" required>
-                <textarea id="review" placeholder="Share your thoughts about the game..." required></textarea>
-                <button type="submit">Post Review</button>
+                <select id="rating" required>
+                    <option value="">Select Rating</option>
+                    <option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
+                    <option value="4">4 Stars ⭐⭐⭐⭐</option>
+                    <option value="3">3 Stars ⭐⭐⭐</option>
+                    <option value="2">2 Stars ⭐⭐</option>
+                    <option value="1">1 Star ⭐</option>
+                </select>
+                <textarea id="reviewText" placeholder="Write your review here..." required></textarea>
+                <button type="submit" class="submit-review">Submit Review</button>
             </form>
         </div>
 
-        <button class="show-reviews-btn" onclick="toggleReviews()">
-            <i class="fas fa-comments"></i> Show Reviews
-        </button>
-
-        <div class="reviews-list" id="reviewsList">
-            <!-- Reviews will be displayed here -->
+        <!-- Reviews List -->
+        <div id="reviewsList" class="reviews-list show">
+            <!-- Reviews will be loaded here -->
         </div>
     </div>
 
-    </div>
-
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-
-    <!-- Your Firebase Config -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
-
+    
     <!-- Auth Check -->
     <script src="auth-check.js"></script>
-
-    <!-- Reviews Script -->
+    
+    <!-- Reviews JavaScript -->
     <script src="reviews.js"></script>
 </body>
 </html> 

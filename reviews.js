@@ -17,6 +17,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Firebase review functionality
+let currentUser = null;
+
+// Auth state observer
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+        loadReviews(); // Load reviews when user is authenticated
+    } else {
+        window.location.href = 'login.html';
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const reviewForm = document.getElementById('reviewForm');
     const reviewsList = document.getElementById('reviewsList');
