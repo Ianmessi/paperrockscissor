@@ -1,33 +1,15 @@
-// List of pages that don't require authentication
-const publicPages = ['login.html'];
+// Import Firebase auth
+import { getAuth, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Check if current page is public
-const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-const isPublicPage = publicPages.includes(currentPage);
+const auth = getAuth();
 
-// Auth state observer
-firebase.auth().onAuthStateChanged((user) => {
-    if (!user && !isPublicPage) {
-        // Redirect to login if not authenticated and trying to access protected page
+// Make signOut function available globally
+window.signOut = async function() {
+    try {
+        await firebaseSignOut(auth);
         window.location.href = 'login.html';
-    } else if (user && currentPage === 'login.html') {
-        // Redirect to index if already authenticated and trying to access login page
-        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Error signing out. Please try again.');
     }
-
-    // If authenticated, update UI elements that show user info
-    if (user) {
-        updateUserUI(user);
-    }
-});
-
-// Function to update UI elements with user info
-function updateUserUI(user) {
-    // Update any UI elements that should show user info
-    const userElements = document.querySelectorAll('.user-info');
-    userElements.forEach(element => {
-        if (element.classList.contains('user-name')) {
-            element.textContent = user.displayName || user.email;
-        }
-    });
-} 
+};
