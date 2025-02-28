@@ -5,6 +5,7 @@ let gameMode = '';
 let currentRoom = '';
 let isPlayer1 = false;
 let currentUser = null;
+let opponentName = '';
 
 // Auth state observer
 firebase.auth().onAuthStateChanged((user) => {
@@ -47,6 +48,7 @@ function createRoom() {
     // Listen for opponent joining
     firebase.database().ref('rooms/' + roomCode + '/player2').on('value', (snapshot) => {
         if (snapshot.exists()) {
+            opponentName = snapshot.val().username;
             document.getElementById('playerCount').textContent = '2/2';
             document.getElementById('waitingMessage').textContent = 'Game starting...';
             setTimeout(() => startGame(5), 1500);
@@ -60,13 +62,15 @@ function createRoom() {
 
 function joinRoom() {
     const roomCode = document.getElementById('roomCode').value.toUpperCase();
-    
+    currentRoom = roomCode;
+    isPlayer1 = false;
+
     // Check if room exists
     firebase.database().ref('rooms/' + roomCode).once('value', (snapshot) => {
-        if (snapshot.exists() && !snapshot.val().player2) {
-            currentRoom = roomCode;
-            isPlayer1 = false;
-
+        if (snapshot.exists() && snapshot.val().player1 && !snapshot.val().player2) {
+            // Store opponent's name
+            opponentName = snapshot.val().player1.username;
+            
             // Join room
             firebase.database().ref('rooms/' + roomCode + '/player2').set({
                 id: currentUser.uid,
@@ -77,11 +81,12 @@ function joinRoom() {
             document.getElementById('roomCreation').style.display = 'none';
             document.getElementById('waitingRoom').style.display = 'block';
             document.getElementById('displayRoomCode').textContent = roomCode;
+            document.getElementById('playerCount').textContent = '2/2';
+            document.getElementById('waitingMessage').textContent = 'Game starting...';
             
-            // Start game
             setTimeout(() => startGame(5), 1500);
         } else {
-            alert('Room not found or full');
+            showError('Room not found or full');
         }
     });
 }
@@ -208,14 +213,22 @@ function getRandomChoice() {
 function determineWinner(player1Choice, player2Choice) {
     if (player1Choice === player2Choice) {
         return "It's a draw!";
-    } else if (
+    }
+
+    const player1Wins = (
         (player1Choice === "Paper" && player2Choice === "Rock") ||
         (player1Choice === "Rock" && player2Choice === "Scissors") ||
         (player1Choice === "Scissors" && player2Choice === "Paper")
-    ) {
-        return "You win!";
+    );
+
+    if (gameMode === 'multiplayer') {
+        if (isPlayer1) {
+            return player1Wins ? "You win!" : `${opponentName} wins!`;
+        } else {
+            return player1Wins ? `${opponentName} wins!` : "You win!";
+        }
     } else {
-        return "Computer wins!";
+        return player1Wins ? "You win!" : "Computer wins!";
     }
 }
 
@@ -228,7 +241,7 @@ function showFinalResult() {
     gameArea.style.display = 'none';
     finalResult.style.display = 'block';
 
-    const opponentLabel = gameMode === 'singleplayer' ? 'Computer' : 'Opponent';
+    const opponentLabel = gameMode === 'singleplayer' ? 'Computer' : opponentName;
     finalScore.innerHTML = `
         <p>Final Score:</p>
         <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
@@ -273,7 +286,7 @@ function displayResult(playerChoice, opponentChoice, result) {
         resultsDiv.classList.add('draw');
     }
 
-    const opponentLabel = gameMode === 'singleplayer' ? "Computer's" : "Opponent's";
+    const opponentLabel = gameMode === 'singleplayer' ? "Computer's" : `${opponentName}'s`;
     resultsDiv.innerHTML = `
         <p><strong>Your choice:</strong> ${playerChoice}</p>
         <p><strong>${opponentLabel} choice:</strong> ${opponentChoice}</p>
