@@ -948,3 +948,31 @@ footer p {
     background: #fde9e8;
     border-radius: 5px;
 }
+
+/* User Welcome Styles */
+.user-welcome {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.user-welcome .user-name {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.user-welcome .auth-button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    background: #e74c3c;
+    color: white;
+}
+
+.user-welcome .auth-button:hover {
+    background: #c0392b;
+}

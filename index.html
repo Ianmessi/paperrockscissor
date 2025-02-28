@@ -11,6 +11,10 @@
 <body class="landing-page">
     <div class="landing-container">
         <h1>Welcome to Rock Paper Scissors</h1>
+        <div class="user-welcome">
+            Welcome, <span class="user-info user-name"></span>!
+            <button onclick="signOut()" class="auth-button">Sign Out</button>
+        </div>
         <div class="menu-options">
             <a href="game.html" class="menu-button">
                 <i class="fas fa-gamepad"></i>
@@ -26,5 +30,26 @@
             </a>
         </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    
+    <!-- Your Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Auth Check -->
+    <script src="auth-check.js"></script>
+
+    <script>
+        function signOut() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('Sign Out Error', error);
+            });
+        }
+    </script>
 </body>
 </html>

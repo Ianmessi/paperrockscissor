@@ -129,13 +129,16 @@ function processRound(moves) {
     displayResult(playerMove, opponentMove, result);
 
     // Clear moves for next round
-    firebase.database().ref('rooms/' + currentRoom + '/moves').remove();
-
-    if (roundsPlayed >= totalRounds) {
-        setTimeout(showFinalResult, 1000);
-        // Update user stats
-        updateUserStats();
-    }
+    firebase.database().ref('rooms/' + currentRoom + '/moves').remove().then(() => {
+        // Enable choices for next round
+        enableChoices();
+        
+        if (roundsPlayed >= totalRounds) {
+            setTimeout(showFinalResult, 1000);
+            // Update user stats
+            updateUserStats();
+        }
+    });
 }
 
 function updateUserStats() {
@@ -225,9 +228,10 @@ function showFinalResult() {
     gameArea.style.display = 'none';
     finalResult.style.display = 'block';
 
+    const opponentLabel = gameMode === 'singleplayer' ? 'Computer' : 'Opponent';
     finalScore.innerHTML = `
         <p>Final Score:</p>
-        <p>You: ${wins} | Computer: ${losses} | Draws: ${draws}</p>
+        <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
     `;
 
     if (wins > losses) {
@@ -239,6 +243,11 @@ function showFinalResult() {
     } else {
         winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
         winnerAnnouncement.className = 'winner-announcement';
+    }
+
+    // If in multiplayer mode, clean up the room
+    if (gameMode === 'multiplayer' && currentRoom) {
+        firebase.database().ref('rooms/' + currentRoom).remove();
     }
 }
 
