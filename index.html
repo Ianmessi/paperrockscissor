@@ -12,7 +12,7 @@
     <div class="landing-container">
         <h1>Welcome to Rock Paper Scissors</h1>
         <div class="user-welcome">
-            Welcome, <span class="user-info user-name"></span>!
+            Welcome, <span class="user-info user-name" id="userName"></span>!
             <button onclick="signOut()" class="auth-button">Sign Out</button>
         </div>
         <div class="menu-options">
@@ -31,16 +31,34 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-    
-    <!-- Your Firebase Config -->
-    <script src="firebase-config.js"></script>
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        Loading...
+    </div>
+
+    <!-- Firebase Config -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1yMW3ixCViH8DT9J3JxutLV1EHSh5vAY",
+            authDomain: "rock-paper-scissors-game-fb9c7.firebaseapp.com",
+            projectId: "rock-paper-scissors-game-fb9c7",
+            storageBucket: "rock-paper-scissors-game-fb9c7.firebasestorage.app",
+            messagingSenderId: "112666661002",
+            appId: "1:112666661002:web:757106430dd7eb6a975d73",
+            measurementId: "G-3738SVHBEJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        window.app = app;
+    </script>
     
     <!-- Auth Check -->
-    <script src="auth-check.js"></script>
+    <script type="module" src="auth-check.js"></script>
 
     <script>
         function signOut() {
