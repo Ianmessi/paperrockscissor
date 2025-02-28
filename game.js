@@ -373,9 +373,9 @@ function displayResult(playerChoice, opponentChoice, result) {
 
     const opponentLabel = gameMode === 'singleplayer' ? "Computer's" : `${opponentName}'s`;
     resultsDiv.innerHTML = `
-        <p><strong>Your choice:</strong> ${playerChoice}</p>
-        <p><strong>${opponentLabel} choice:</strong> ${opponentChoice}</p>
-        <p><strong>Result:</strong> ${result}</p>
+        <p><span style="color: black; font-weight: 700;">Your choice:</span> ${playerChoice}</p>
+        <p><span style="color: black; font-weight: 700;">${opponentLabel} choice:</span> ${opponentChoice}</p>
+        <p><span style="color: black; font-weight: 700;">Result:</span> ${result}</p>
     `;
     resultsDiv.classList.add("fade-in");
 
