@@ -2,9 +2,19 @@ let wins = 0, losses = 0, draws = 0;
 let totalRounds = 0;
 let roundsPlayed = 0;
 let gameMode = '';
-let socket;
 let currentRoom = '';
 let isPlayer1 = false;
+let currentUser = null;
+
+// Auth state observer
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+    } else {
+        // Redirect to login if not authenticated
+        window.location.href = 'login.html';
+    }
+});
 
 function selectGameMode(mode) {
     gameMode = mode;
@@ -14,56 +24,66 @@ function selectGameMode(mode) {
         document.getElementById('roundsSelection').style.display = 'block';
     } else {
         document.getElementById('multiplayerRoom').style.display = 'block';
-        initializeMultiplayer();
     }
 }
 
-function initializeMultiplayer() {
-    socket = io();
-
-    socket.on('roomCreated', (roomCode) => {
-        currentRoom = roomCode;
-        document.getElementById('roomCreation').style.display = 'none';
-        document.getElementById('waitingRoom').style.display = 'block';
-        document.getElementById('displayRoomCode').textContent = roomCode;
-        isPlayer1 = true;
-    });
-
-    socket.on('joinedRoom', (roomCode) => {
-        currentRoom = roomCode;
-        document.getElementById('roomCreation').style.display = 'none';
-        document.getElementById('waitingRoom').style.display = 'block';
-        document.getElementById('displayRoomCode').textContent = roomCode;
-        isPlayer1 = false;
-    });
-
-    socket.on('gameReady', () => {
-        document.getElementById('playerCount').textContent = '2/2';
-        document.getElementById('waitingMessage').textContent = 'Game starting...';
-        setTimeout(() => startGame(5), 1500);
-    });
-
-    socket.on('roundResult', ({ moves, result }) => {
-        const [player1Move, player2Move] = moves;
-        const playerMove = isPlayer1 ? player1Move : player2Move;
-        const opponentMove = isPlayer1 ? player2Move : player1Move;
-        
-        updateMultiplayerResult(playerMove, opponentMove, result);
-    });
-
-    socket.on('playerLeft', () => {
-        alert('Your opponent has left the game');
-        resetGame();
-    });
-}
-
 function createRoom() {
-    socket.emit('createRoom');
+    const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    currentRoom = roomCode;
+    isPlayer1 = true;
+
+    // Create room in Firebase
+    firebase.database().ref('rooms/' + roomCode).set({
+        player1: {
+            id: currentUser.uid,
+            username: currentUser.displayName,
+            ready: false
+        },
+        gameState: 'waiting',
+        rounds: 5,
+        currentRound: 0
+    });
+
+    // Listen for opponent joining
+    firebase.database().ref('rooms/' + roomCode + '/player2').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            document.getElementById('playerCount').textContent = '2/2';
+            document.getElementById('waitingMessage').textContent = 'Game starting...';
+            setTimeout(() => startGame(5), 1500);
+        }
+    });
+
+    document.getElementById('roomCreation').style.display = 'none';
+    document.getElementById('waitingRoom').style.display = 'block';
+    document.getElementById('displayRoomCode').textContent = roomCode;
 }
 
 function joinRoom() {
     const roomCode = document.getElementById('roomCode').value.toUpperCase();
-    socket.emit('joinRoom', roomCode);
+    
+    // Check if room exists
+    firebase.database().ref('rooms/' + roomCode).once('value', (snapshot) => {
+        if (snapshot.exists() && !snapshot.val().player2) {
+            currentRoom = roomCode;
+            isPlayer1 = false;
+
+            // Join room
+            firebase.database().ref('rooms/' + roomCode + '/player2').set({
+                id: currentUser.uid,
+                username: currentUser.displayName,
+                ready: false
+            });
+
+            document.getElementById('roomCreation').style.display = 'none';
+            document.getElementById('waitingRoom').style.display = 'block';
+            document.getElementById('displayRoomCode').textContent = roomCode;
+            
+            // Start game
+            setTimeout(() => startGame(5), 1500);
+        } else {
+            alert('Room not found or full');
+        }
+    });
 }
 
 function startGame(rounds) {
@@ -73,10 +93,101 @@ function startGame(rounds) {
     losses = 0;
     draws = 0;
     
-    document.getElementById('gameModeSelection').style.display = 'none';
+    document.getElementById('multiplayerRoom').style.display = 'none';
     document.getElementById('gameArea').style.display = 'block';
     document.getElementById('finalResult').style.display = 'none';
     updateScores();
+
+    if (gameMode === 'multiplayer') {
+        // Listen for opponent's moves
+        firebase.database().ref('rooms/' + currentRoom + '/moves').on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const moves = snapshot.val();
+                if (moves.player1 && moves.player2) {
+                    processRound(moves);
+                }
+            }
+        });
+    }
+}
+
+function processRound(moves) {
+    const playerMove = isPlayer1 ? moves.player1 : moves.player2;
+    const opponentMove = isPlayer1 ? moves.player2 : moves.player1;
+    const result = determineWinner(playerMove, opponentMove);
+
+    if (result === "You win!") {
+        wins++;
+    } else if (result === "Opponent wins!") {
+        losses++;
+    } else {
+        draws++;
+    }
+
+    roundsPlayed++;
+    updateScores();
+    displayResult(playerMove, opponentMove, result);
+
+    // Clear moves for next round
+    firebase.database().ref('rooms/' + currentRoom + '/moves').remove();
+
+    if (roundsPlayed >= totalRounds) {
+        setTimeout(showFinalResult, 1000);
+        // Update user stats
+        updateUserStats();
+    }
+}
+
+function updateUserStats() {
+    const userRef = firebase.database().ref('users/' + currentUser.uid + '/stats');
+    userRef.transaction((stats) => {
+        if (stats) {
+            stats.gamesPlayed++;
+            stats.wins += wins;
+            stats.losses += losses;
+            stats.draws += draws;
+        }
+        return stats;
+    });
+}
+
+function playGame(playerChoice) {
+    if (roundsPlayed >= totalRounds) return;
+
+    if (gameMode === 'singleplayer') {
+        playSinglePlayer(playerChoice);
+    } else {
+        playMultiplayer(playerChoice);
+    }
+}
+
+function playSinglePlayer(playerChoice) {
+    const computerChoice = getRandomChoice();
+    const result = determineWinner(playerChoice, computerChoice);
+
+    if (result === "You win!") {
+        wins++;
+    } else if (result === "Computer wins!") {
+        losses++;
+    } else {
+        draws++;
+    }
+
+    roundsPlayed++;
+    updateScores();
+    displayResult(playerChoice, computerChoice, result);
+
+    if (roundsPlayed >= totalRounds) {
+        setTimeout(showFinalResult, 1000);
+        // Update user stats
+        updateUserStats();
+    }
+}
+
+function playMultiplayer(playerChoice) {
+    const playerPath = isPlayer1 ? 'player1' : 'player2';
+    firebase.database().ref('rooms/' + currentRoom + '/moves/' + playerPath).set(playerChoice);
+    disableChoices();
 }
 
 function updateScores() {
@@ -131,65 +242,6 @@ function showFinalResult() {
     }
 }
 
-function playGame(playerChoice) {
-    if (roundsPlayed >= totalRounds) return;
-
-    if (gameMode === 'singleplayer') {
-        playSinglePlayer(playerChoice);
-    } else {
-        playMultiplayer(playerChoice);
-    }
-}
-
-function playSinglePlayer(playerChoice) {
-    const computerChoice = getRandomChoice();
-    const result = determineWinner(playerChoice, computerChoice);
-
-    if (result === "You win!") {
-        wins++;
-    } else if (result === "Computer wins!") {
-        losses++;
-    } else {
-        draws++;
-    }
-
-    roundsPlayed++;
-    updateScores();
-    displayResult(playerChoice, computerChoice, result);
-
-    if (roundsPlayed >= totalRounds) {
-        setTimeout(showFinalResult, 1000);
-    }
-}
-
-function playMultiplayer(playerChoice) {
-    socket.emit('move', { roomCode: currentRoom, move: playerChoice });
-    disableChoices();
-}
-
-function updateMultiplayerResult(playerMove, opponentMove, result) {
-    let displayResult;
-    if (result === 'draw') {
-        draws++;
-        displayResult = "It's a draw!";
-    } else if ((result === 'player1' && isPlayer1) || (result === 'player2' && !isPlayer1)) {
-        wins++;
-        displayResult = "You win!";
-    } else {
-        losses++;
-        displayResult = "Opponent wins!";
-    }
-
-    roundsPlayed++;
-    updateScores();
-    displayResult(playerMove, opponentMove, displayResult);
-    enableChoices();
-
-    if (roundsPlayed >= totalRounds) {
-        setTimeout(showFinalResult, 1000);
-    }
-}
-
 function disableChoices() {
     const buttons = document.querySelectorAll('.choices button');
     buttons.forEach(button => button.disabled = true);
@@ -226,6 +278,17 @@ function displayResult(playerChoice, opponentChoice, result) {
 }
 
 function resetGame() {
+    if (gameMode === 'multiplayer' && currentRoom) {
+        // Clean up Firebase listeners and room
+        firebase.database().ref('rooms/' + currentRoom).off();
+        firebase.database().ref('rooms/' + currentRoom).remove();
+    }
+    
     document.getElementById('gameModeSelection').style.display = 'block';
+    document.getElementById('gameArea').style.display = 'none';
     document.getElementById('finalResult').style.display = 'none';
+    document.getElementById('multiplayerRoom').style.display = 'none';
+    
+    currentRoom = '';
+    gameMode = '';
 } 
