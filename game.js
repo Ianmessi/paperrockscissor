@@ -134,6 +134,12 @@ function processRound(moves) {
     } else if ((isPlayer1 && player1Wins) || (!isPlayer1 && !player1Wins)) {
         result = "You win!";
         wins++;
+        // Store the round result in Firebase for consistent scoring
+        firebase.database().ref('rooms/' + currentRoom + '/roundResults/' + roundsPlayed).set({
+            winner: isPlayer1 ? 'player1' : 'player2',
+            player1Move: moves.player1,
+            player2Move: moves.player2
+        });
     } else {
         result = `${opponentName} wins!`;
         losses++;
@@ -251,26 +257,80 @@ function showFinalResult() {
     gameArea.style.display = 'none';
     finalResult.style.display = 'block';
 
-    const opponentLabel = gameMode === 'singleplayer' ? 'Computer' : opponentName;
-    finalScore.innerHTML = `
-        <p>Final Score:</p>
-        <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
-    `;
+    if (gameMode === 'multiplayer') {
+        // Get final round results from Firebase
+        firebase.database().ref('rooms/' + currentRoom + '/roundResults').once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const roundResults = snapshot.val();
+                let player1Wins = 0;
+                let player2Wins = 0;
+                let drawCount = 0;
 
-    if (wins > losses) {
-        winnerAnnouncement.innerHTML = 'YOU WON 🥇';
-        winnerAnnouncement.className = 'winner-announcement win';
-    } else if (losses > wins) {
-        winnerAnnouncement.innerHTML = 'YOU LOST 😞';
-        winnerAnnouncement.className = 'winner-announcement lose';
+                // Count the results
+                Object.values(roundResults).forEach(result => {
+                    if (!result.winner) {
+                        drawCount++;
+                    } else if (result.winner === 'player1') {
+                        player1Wins++;
+                    } else {
+                        player2Wins++;
+                    }
+                });
+
+                // Set the correct scores based on player position
+                if (isPlayer1) {
+                    wins = player1Wins;
+                    losses = player2Wins;
+                } else {
+                    wins = player2Wins;
+                    losses = player1Wins;
+                }
+                draws = drawCount;
+
+                // Update the display
+                const opponentLabel = opponentName;
+                finalScore.innerHTML = `
+                    <p>Final Score:</p>
+                    <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
+                `;
+
+                if (wins > losses) {
+                    winnerAnnouncement.innerHTML = 'YOU WON 🥇';
+                    winnerAnnouncement.className = 'winner-announcement win';
+                } else if (losses > wins) {
+                    winnerAnnouncement.innerHTML = 'YOU LOST 😞';
+                    winnerAnnouncement.className = 'winner-announcement lose';
+                } else {
+                    winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
+                    winnerAnnouncement.className = 'winner-announcement';
+                }
+            }
+        });
     } else {
-        winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
-        winnerAnnouncement.className = 'winner-announcement';
+        // Single player logic remains the same
+        const opponentLabel = 'Computer';
+        finalScore.innerHTML = `
+            <p>Final Score:</p>
+            <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
+        `;
+
+        if (wins > losses) {
+            winnerAnnouncement.innerHTML = 'YOU WON 🥇';
+            winnerAnnouncement.className = 'winner-announcement win';
+        } else if (losses > wins) {
+            winnerAnnouncement.innerHTML = 'YOU LOST 😞';
+            winnerAnnouncement.className = 'winner-announcement lose';
+        } else {
+            winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
+            winnerAnnouncement.className = 'winner-announcement';
+        }
     }
 
-    // If in multiplayer mode, clean up the room
+    // If in multiplayer mode, clean up the room after a short delay
     if (gameMode === 'multiplayer' && currentRoom) {
-        firebase.database().ref('rooms/' + currentRoom).remove();
+        setTimeout(() => {
+            firebase.database().ref('rooms/' + currentRoom).remove();
+        }, 2000);
     }
 }
 
