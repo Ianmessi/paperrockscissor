@@ -45,17 +45,13 @@
         </button>
 
         <!-- Reviews List -->
-        <div id="reviewsList" class="reviews-list">
-            <!-- Reviews will be loaded here -->
-        </div>
+        <div id="reviewsList" class="reviews-list"></div>
     </div>
 
     <!-- Firebase Config -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyA1yMW3ixCViH8DT9J3JxutLV1EHSh5vAY",
             authDomain: "rock-paper-scissors-game-fb9c7.firebaseapp.com",
@@ -66,7 +62,6 @@
             measurementId: "G-3738SVHBEJ"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         window.app = app;
     </script>
@@ -76,20 +71,5 @@
     
     <!-- Reviews JavaScript -->
     <script type="module" src="reviews.js"></script>
-
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        Loading...
-    </div>
-
-    <script>
-        // Show loading indicator when page loads
-        document.getElementById('loadingIndicator').style.display = 'block';
-
-        // Hide loading indicator when all content is loaded
-        window.addEventListener('load', () => {
-            document.getElementById('loadingIndicator').style.display = 'none';
-        });
-    </script>
 </body>
 </html> 
