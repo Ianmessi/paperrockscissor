@@ -102,38 +102,48 @@ button:active {
 
 /* Enhanced Results Section */
 .results {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     padding: 20px;
     border-radius: 15px;
     margin-top: 20px;
     font-size: 1.5rem;
-    color: var(--white);
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-    transition: all var(--animation-speed) ease;
+    color: #000;
+    text-shadow: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .results p {
     margin: 10px 0;
-    opacity: 0;
+    opacity: 1;
     transform: translateY(20px);
     animation: slideUp 0.5s forwards;
+    font-weight: 500;
 }
 
-/* Update/restore the results colors */
+.results p strong {
+    color: #1a73e8;
+    font-weight: 600;
+}
+
+/* Update/restore the results colors with better contrast */
 .results.win {
-    background: rgba(76, 175, 80, 0.2) !important; /* Green for wins */
-    border: 2px solid rgba(76, 175, 80, 0.5);
+    background: rgba(76, 175, 80, 0.95) !important;
+    border: 2px solid #4CAF50;
+    color: white;
 }
 
 .results.lose {
-    background: rgba(244, 67, 54, 0.2) !important; /* Red for losses */
-    border: 2px solid rgba(244, 67, 54, 0.5);
+    background: rgba(244, 67, 54, 0.95) !important;
+    border: 2px solid #F44336;
+    color: white;
 }
 
 .results.draw {
-    background: rgba(255, 255, 255, 0.2) !important; /* White for draws */
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: rgba(33, 150, 243, 0.95) !important;
+    border: 2px solid #2196F3;
+    color: white;
 }
 
 /* Score Display */
@@ -193,6 +203,21 @@ footer p {
     h1 { font-size: 2.5rem; }
     .game-container { padding: 1rem; }
     button { padding: 12px 24px; }
+    .results {
+        font-size: 1.2rem;
+        padding: 15px;
+    }
+    .final-result {
+        padding: 20px;
+    }
+    #finalScore {
+        font-size: 1.2rem;
+        padding: 12px;
+    }
+    .winner-announcement {
+        font-size: 2rem;
+        padding: 15px;
+    }
 }
 
 /* Landing Page Styles */
@@ -666,11 +691,37 @@ footer p {
 }
 
 .final-result {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     padding: 30px;
     border-radius: 20px;
     text-align: center;
     margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.final-result h2 {
+    color: #1a73e8;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    text-shadow: none;
+}
+
+#finalScore {
+    color: #000;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-shadow: none;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#finalScore p {
+    color: #000 !important;
+    margin: 10px 0;
+    line-height: 1.5;
 }
 
 .winner-announcement {
@@ -680,16 +731,25 @@ footer p {
     padding: 20px;
     border-radius: 15px;
     animation: bounce 1s infinite;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .winner-announcement.win {
-    background: rgba(76, 175, 80, 0.2);
-    color: #4CAF50;
+    background: rgba(76, 175, 80, 0.95);
+    color: white;
+    border: 3px solid #4CAF50;
 }
 
 .winner-announcement.lose {
-    background: rgba(244, 67, 54, 0.2);
-    color: #F44336;
+    background: rgba(244, 67, 54, 0.95);
+    color: white;
+    border: 3px solid #F44336;
+}
+
+.winner-announcement.draw {
+    background: rgba(33, 150, 243, 0.95);
+    color: white;
+    border: 3px solid #2196F3;
 }
 
 .play-again-button {

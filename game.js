@@ -120,30 +120,37 @@ function processRound(moves) {
     const playerMove = isPlayer1 ? moves.player1 : moves.player2;
     const opponentMove = isPlayer1 ? moves.player2 : moves.player1;
     
-    // Determine if player1 wins
-    const player1Wins = (
-        (moves.player1 === "Paper" && moves.player2 === "Rock") ||
-        (moves.player1 === "Rock" && moves.player2 === "Scissors") ||
-        (moves.player1 === "Scissors" && moves.player2 === "Paper")
-    );
+    // Store round result in Firebase regardless of outcome
+    let roundResult = {
+        player1Move: moves.player1,
+        player2Move: moves.player2
+    };
 
-    let result;
     if (moves.player1 === moves.player2) {
         result = "It's a draw!";
         draws++;
-    } else if ((isPlayer1 && player1Wins) || (!isPlayer1 && !player1Wins)) {
-        result = "You win!";
-        wins++;
-        // Store the round result in Firebase for consistent scoring
-        firebase.database().ref('rooms/' + currentRoom + '/roundResults/' + roundsPlayed).set({
-            winner: isPlayer1 ? 'player1' : 'player2',
-            player1Move: moves.player1,
-            player2Move: moves.player2
-        });
+        roundResult.winner = 'draw';
     } else {
-        result = `${opponentName} wins!`;
-        losses++;
+        // Determine if player1 wins
+        const player1Wins = (
+            (moves.player1 === "Paper" && moves.player2 === "Rock") ||
+            (moves.player1 === "Rock" && moves.player2 === "Scissors") ||
+            (moves.player1 === "Scissors" && moves.player2 === "Paper")
+        );
+
+        if ((isPlayer1 && player1Wins) || (!isPlayer1 && !player1Wins)) {
+            result = "You win!";
+            wins++;
+            roundResult.winner = isPlayer1 ? 'player1' : 'player2';
+        } else {
+            result = `${opponentName} wins!`;
+            losses++;
+            roundResult.winner = isPlayer1 ? 'player2' : 'player1';
+        }
     }
+
+    // Store the round result
+    firebase.database().ref('rooms/' + currentRoom + '/roundResults/' + roundsPlayed).set(roundResult);
 
     roundsPlayed++;
     updateScores();
@@ -268,11 +275,11 @@ function showFinalResult() {
 
                 // Count the results
                 Object.values(roundResults).forEach(result => {
-                    if (!result.winner) {
+                    if (result.winner === 'draw') {
                         drawCount++;
                     } else if (result.winner === 'player1') {
                         player1Wins++;
-                    } else {
+                    } else if (result.winner === 'player2') {
                         player2Wins++;
                     }
                 });
@@ -287,42 +294,50 @@ function showFinalResult() {
                 }
                 draws = drawCount;
 
-                // Update the display
+                // Update the display with enhanced formatting
                 const opponentLabel = opponentName;
                 finalScore.innerHTML = `
                     <p>Final Score:</p>
-                    <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
+                    <p style="font-size: 1.6rem; margin: 15px 0;">
+                        <strong style="color: #4CAF50;">You: ${wins}</strong> | 
+                        <strong style="color: #F44336;">${opponentLabel}: ${losses}</strong> | 
+                        <strong style="color: #2196F3;">Draws: ${draws}</strong>
+                    </p>
                 `;
 
                 if (wins > losses) {
-                    winnerAnnouncement.innerHTML = 'YOU WON 🥇';
+                    winnerAnnouncement.innerHTML = 'YOU WON 🏆';
                     winnerAnnouncement.className = 'winner-announcement win';
                 } else if (losses > wins) {
-                    winnerAnnouncement.innerHTML = 'YOU LOST 😞';
+                    winnerAnnouncement.innerHTML = 'YOU LOST 😔';
                     winnerAnnouncement.className = 'winner-announcement lose';
                 } else {
                     winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
-                    winnerAnnouncement.className = 'winner-announcement';
+                    winnerAnnouncement.className = 'winner-announcement draw';
                 }
             }
         });
     } else {
-        // Single player logic remains the same
+        // Single player logic with enhanced formatting
         const opponentLabel = 'Computer';
         finalScore.innerHTML = `
             <p>Final Score:</p>
-            <p>You: ${wins} | ${opponentLabel}: ${losses} | Draws: ${draws}</p>
+            <p style="font-size: 1.6rem; margin: 15px 0;">
+                <strong style="color: #4CAF50;">You: ${wins}</strong> | 
+                <strong style="color: #F44336;">${opponentLabel}: ${losses}</strong> | 
+                <strong style="color: #2196F3;">Draws: ${draws}</strong>
+            </p>
         `;
 
         if (wins > losses) {
-            winnerAnnouncement.innerHTML = 'YOU WON 🥇';
+            winnerAnnouncement.innerHTML = 'YOU WON 🏆';
             winnerAnnouncement.className = 'winner-announcement win';
         } else if (losses > wins) {
-            winnerAnnouncement.innerHTML = 'YOU LOST 😞';
+            winnerAnnouncement.innerHTML = 'YOU LOST 😔';
             winnerAnnouncement.className = 'winner-announcement lose';
         } else {
             winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
-            winnerAnnouncement.className = 'winner-announcement';
+            winnerAnnouncement.className = 'winner-announcement draw';
         }
     }
 
