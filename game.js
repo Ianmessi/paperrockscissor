@@ -119,14 +119,24 @@ function startGame(rounds) {
 function processRound(moves) {
     const playerMove = isPlayer1 ? moves.player1 : moves.player2;
     const opponentMove = isPlayer1 ? moves.player2 : moves.player1;
-    const result = determineWinner(playerMove, opponentMove);
+    
+    // Determine if player1 wins
+    const player1Wins = (
+        (moves.player1 === "Paper" && moves.player2 === "Rock") ||
+        (moves.player1 === "Rock" && moves.player2 === "Scissors") ||
+        (moves.player1 === "Scissors" && moves.player2 === "Paper")
+    );
 
-    if (result === "You win!") {
-        wins++;
-    } else if (result === "Opponent wins!") {
-        losses++;
-    } else {
+    let result;
+    if (moves.player1 === moves.player2) {
+        result = "It's a draw!";
         draws++;
+    } else if ((isPlayer1 && player1Wins) || (!isPlayer1 && !player1Wins)) {
+        result = "You win!";
+        wins++;
+    } else {
+        result = `${opponentName} wins!`;
+        losses++;
     }
 
     roundsPlayed++;
