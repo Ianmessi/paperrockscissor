@@ -3,66 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Rock Paper Scissors</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <title>Login - Rock Paper Scissors</title>
+    <link rel="stylesheet" href="login-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="login-page">
-        <div class="wrapper">
-            <form id="loginForm">
-                <h2>Login</h2>
-                <div class="input-field">
-                    <input type="email" id="email" required>
-                    <label>Email</label>
-                </div>
-                <div class="input-field">
-                    <input type="password" id="password" required>
-                    <label>Password</label>
-                </div>
-                <div class="forget">
-                    <label for="remember">
-                        <input type="checkbox" id="remember">
-                        <p>Remember me</p>
-                    </label>
-                    <a href="#" id="forgotPassword">Forgot password?</a>
-                </div>
-                <button type="submit">Login</button>
-                <div class="social-login">
-                    <button type="button" id="googleLogin" class="google-btn">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18">
-                        Sign in with Google
-                    </button>
-                </div>
-                <div class="register">
-                    <p>Don't have an account? <a href="#" id="showRegister">Register</a></p>
-                </div>
-            </form>
-            <form id="registerForm" style="display: none;">
-                <h2>Register</h2>
-                <div class="input-field">
-                    <input type="email" id="registerEmail" required>
-                    <label>Email</label>
-                </div>
-                <div class="input-field">
-                    <input type="password" id="registerPassword" required>
-                    <label>Password</label>
-                </div>
-                <div class="input-field">
-                    <input type="password" id="confirmPassword" required>
-                    <label>Confirm Password</label>
-                </div>
-                <button type="submit">Register</button>
-                <div class="register">
-                    <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
-                </div>
-            </form>
+    <div class="wrapper">
+        <form id="loginForm">
+            <h2>Rock Paper Scissors</h2>
+            
             <div id="errorMessage" class="error-message"></div>
-        </div>
+            
+            <div class="input-field">
+                <input type="email" id="email" required>
+                <label>Enter your email</label>
+            </div>
+            
+            <div class="input-field">
+                <input type="password" id="password" required>
+                <label>Enter your password</label>
+            </div>
+            
+            <div class="forget">
+                <label for="remember">
+                    <input type="checkbox" id="remember">
+                    <p>Remember me</p>
+                </label>
+                <a href="#" id="forgotPassword">Forgot password?</a>
+            </div>
+            
+            <button type="button" id="loginButton">Log In</button>
+            
+            <div class="divider">
+                <span>or</span>
+            </div>
+            
+            <button type="button" id="googleLoginButton" class="google-btn">
+                <i class="fab fa-google"></i> Sign in with Google
+            </button>
+            
+            <div class="register">
+                <p>Don't have an account? <a href="#" id="showSignup">Register</a></p>
+            </div>
+        </form>
+        
+        <form id="signupForm" style="display: none;">
+            <h2>Create Account</h2>
+            
+            <div id="signupErrorMessage" class="error-message"></div>
+            
+            <div class="input-field">
+                <input type="email" id="signupEmail" required>
+                <label>Enter your email</label>
+            </div>
+            
+            <div class="input-field">
+                <input type="password" id="signupPassword" required>
+                <label>Enter your password</label>
+            </div>
+            
+            <div class="input-field">
+                <input type="password" id="confirmPassword" required>
+                <label>Confirm your password</label>
+            </div>
+            
+            <button type="button" id="signupButton">Sign Up</button>
+            
+            <div class="divider">
+                <span>or</span>
+            </div>
+            
+            <button type="button" id="googleSignupButton" class="google-btn">
+                <i class="fab fa-google"></i> Sign up with Google
+            </button>
+            
+            <div class="register">
+                <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
+            </div>
+        </form>
     </div>
-    <script src="auth.js"></script>
+    
+    <script type="module" src="login.js"></script>
 </body>
 </html> 

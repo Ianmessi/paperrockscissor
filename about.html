@@ -3,60 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Developer | Rock Paper Scissors</title>
+    <title>Rock Paper Scissors | About</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="about-page">
-    <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Menu
-    </a>
     <div class="about-container">
-        <h1>About the Developer</h1>
+        <a href="index.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Menu
+        </a>
+
         <div class="developer-info">
-            <img src="ian.jpg" alt="IAN" class="developer-photo">
-            <h2>IAN</h2>
-            <p class="title">Computer Science Student & Programmer</p>
-            <div class="bio">
-                <p>Hello! I'm a passionate Computer Science student at OTH Regensburg. As a programmer, I enjoy creating interactive web applications and solving complex problems through code.</p>
-                <p>Currently pursuing my studies at OTH Regensburg, I'm constantly expanding my knowledge and skills in various programming technologies and concepts.</p>
-            </div>
-            <div class="skills">
-                <h3>Skills</h3>
-                <ul>
-                    <li>HTML5</li>
-                    <li>CSS3</li>
-                    <li>JavaScript</li>
-                    <li>Java</li>
-                    <li>Web Development</li>
-                </ul>
-            </div>
-            <div class="contact-form">
-                <h3>Send me a Message</h3>
-                <form action="https://formspree.io/f/manqvzkb" method="POST">
-                    <input type="email" name="email" placeholder="Your Email Address" required>
-                    <textarea name="message" placeholder="Your Message" required></textarea>
-                    <button type="submit">Send Message</button>
-                </form>
-            </div>
+            <img src="ian.jpg" alt="Developer" class="developer-image">
+            <h2>About the Developer</h2>
+            <p>Hi, I'm Ian! I'm a passionate web developer who loves creating interactive games and applications.</p>
+            <p>This Rock Paper Scissors game was created as a fun project to demonstrate modern web development techniques including:</p>
+            <ul>
+                <li>Responsive Design</li>
+                <li>Real-time Multiplayer</li>
+                <li>User Authentication</li>
+                <li>Database Integration</li>
+            </ul>
             <div class="social-links">
-                <a href="#" class="social-link"><i class="fab fa-github"></i></a>
-                <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
-                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="https://github.com/yourusername" target="_blank" class="social-link">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="https://linkedin.com/in/yourusername" target="_blank" class="social-link">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-
-    <!-- Your Firebase Config -->
-    <script src="firebase-config.js"></script>
-
-    <!-- Auth Check -->
-    <script src="auth-check.js"></script>
+    <!-- Module Scripts -->
+    <script type="module" src="auth-check.js"></script>
+    <script type="module" src="header.js"></script>
 </body>
 </html> 

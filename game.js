@@ -1,3 +1,35 @@
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getDatabase, ref, set, get, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import firebaseConfig from './firebase-config.js';
+
+// Initialize Firebase
+let app, auth, database;
+try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    database = getDatabase(app);
+    console.log("Firebase initialized successfully");
+    
+    // Test database connection
+    const testRef = ref(database, 'test');
+    set(testRef, {
+        timestamp: Date.now(),
+        message: 'Database connection test'
+    })
+    .then(() => {
+        console.log("Database connection successful");
+    })
+    .catch((error) => {
+        console.error("Database connection error:", error);
+        alert("Error connecting to the database. Please check your Firebase configuration.");
+    });
+} catch (error) {
+    console.error("Firebase initialization error:", error);
+    alert("Error initializing Firebase. Please check your configuration.");
+}
+
 let wins = 0, losses = 0, draws = 0;
 let totalRounds = 0;
 let roundsPlayed = 0;
@@ -8,9 +40,23 @@ let currentUser = null;
 let opponentName = '';
 
 // Auth state observer
-firebase.auth().onAuthStateChanged((user) => {
+onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
+        console.log("User authenticated:", user.displayName || user.email);
+        
+        // Initialize user stats if they don't exist
+        const userStatsRef = ref(database, 'users/' + user.uid + '/stats');
+        get(userStatsRef).then((snapshot) => {
+            if (!snapshot.exists()) {
+                set(userStatsRef, {
+                    gamesPlayed: 0,
+                    wins: 0,
+                    losses: 0,
+                    draws: 0
+                });
+            }
+        });
     } else {
         // Redirect to login if not authenticated
         window.location.href = 'login.html';
@@ -29,55 +75,112 @@ function selectGameMode(mode) {
 }
 
 function createRoom() {
+    if (!currentUser) {
+        showError('You must be logged in to create a room');
+        return;
+    }
+    
+    if (!currentUser.displayName) {
+        showError('Your profile is missing a display name. Please contact support.');
+        console.error('User missing displayName:', currentUser.uid);
+        return;
+    }
+    
     const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     currentRoom = roomCode;
     isPlayer1 = true;
 
+    console.log("Creating room with code:", roomCode);
+    console.log("Current user:", currentUser.displayName);
+
     // Create room in Firebase
-    firebase.database().ref('rooms/' + roomCode).set({
+    const roomRef = ref(database, 'rooms/' + roomCode);
+    set(roomRef, {
         player1: {
             id: currentUser.uid,
-            username: currentUser.displayName,
+            username: currentUser.displayName || 'Player 1',
             ready: false
         },
         gameState: 'waiting',
         rounds: 5,
-        currentRound: 0
-    });
+        currentRound: 0,
+        createdAt: serverTimestamp()
+    })
+    .then(() => {
+        console.log("Room created successfully:", roomCode);
+        
+        // Listen for opponent joining
+        const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
+        onValue(player2Ref, (snapshot) => {
+            if (snapshot.exists()) {
+                opponentName = snapshot.val().username;
+                document.getElementById('playerCount').textContent = '2/2';
+                document.getElementById('waitingMessage').textContent = 'Game starting...';
+                setTimeout(() => startGame(5), 1500);
+            }
+        });
 
-    // Listen for opponent joining
-    firebase.database().ref('rooms/' + roomCode + '/player2').on('value', (snapshot) => {
-        if (snapshot.exists()) {
-            opponentName = snapshot.val().username;
-            document.getElementById('playerCount').textContent = '2/2';
-            document.getElementById('waitingMessage').textContent = 'Game starting...';
-            setTimeout(() => startGame(5), 1500);
-        }
+        document.getElementById('roomCreation').style.display = 'none';
+        document.getElementById('waitingRoom').style.display = 'block';
+        document.getElementById('displayRoomCode').textContent = roomCode;
+    })
+    .catch((error) => {
+        console.error("Error creating room:", error);
+        showError('Failed to create room: ' + error.message);
     });
-
-    document.getElementById('roomCreation').style.display = 'none';
-    document.getElementById('waitingRoom').style.display = 'block';
-    document.getElementById('displayRoomCode').textContent = roomCode;
 }
 
 function joinRoom() {
+    if (!currentUser) {
+        showError('You must be logged in to join a room');
+        return;
+    }
+    
+    if (!currentUser.displayName) {
+        showError('Your profile is missing a display name. Please contact support.');
+        console.error('User missing displayName:', currentUser.uid);
+        return;
+    }
+    
     const roomCode = document.getElementById('roomCode').value.toUpperCase();
+    if (!roomCode) {
+        showError('Please enter a room code');
+        return;
+    }
+    
+    console.log("Attempting to join room:", roomCode);
+    
     currentRoom = roomCode;
     isPlayer1 = false;
 
     // Check if room exists
-    firebase.database().ref('rooms/' + roomCode).once('value', (snapshot) => {
-        if (snapshot.exists() && snapshot.val().player1 && !snapshot.val().player2) {
-            // Store opponent's name
-            opponentName = snapshot.val().player1.username;
-            
-            // Join room
-            firebase.database().ref('rooms/' + roomCode + '/player2').set({
-                id: currentUser.uid,
-                username: currentUser.displayName,
-                ready: false
-            });
-
+    const roomRef = ref(database, 'rooms/' + roomCode);
+    get(roomRef)
+        .then((snapshot) => {
+            if (snapshot.exists() && snapshot.val().player1 && !snapshot.val().player2) {
+                // Store opponent's name
+                opponentName = snapshot.val().player1.username;
+                console.log("Found room, opponent:", opponentName);
+                
+                // Join room
+                const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
+                return set(player2Ref, {
+                    id: currentUser.uid,
+                    username: currentUser.displayName || 'Player 2',
+                    ready: false
+                });
+            } else {
+                if (!snapshot.exists()) {
+                    throw new Error('Room not found');
+                } else if (!snapshot.val().player1) {
+                    throw new Error('Room is invalid');
+                } else {
+                    throw new Error('Room is full');
+                }
+            }
+        })
+        .then(() => {
+            console.log("Successfully joined room:", roomCode);
             document.getElementById('roomCreation').style.display = 'none';
             document.getElementById('waitingRoom').style.display = 'block';
             document.getElementById('displayRoomCode').textContent = roomCode;
@@ -85,12 +188,14 @@ function joinRoom() {
             document.getElementById('waitingMessage').textContent = 'Game starting...';
             
             setTimeout(() => startGame(5), 1500);
-        } else {
-            showError('Room not found or full');
-        }
-    });
+        })
+        .catch((error) => {
+            console.error("Error joining room:", error);
+            showError(error.message || 'Failed to join room');
+        });
 }
 
+// Start the game with the specified number of rounds
 function startGame(rounds) {
     totalRounds = rounds;
     roundsPlayed = 0;
@@ -98,304 +203,159 @@ function startGame(rounds) {
     losses = 0;
     draws = 0;
     
+    document.getElementById('roundsSelection').style.display = 'none';
     document.getElementById('multiplayerRoom').style.display = 'none';
     document.getElementById('gameArea').style.display = 'block';
-    document.getElementById('finalResult').style.display = 'none';
-    updateScores();
-
-    if (gameMode === 'multiplayer') {
-        // Listen for opponent's moves
-        firebase.database().ref('rooms/' + currentRoom + '/moves').on('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const moves = snapshot.val();
-                if (moves.player1 && moves.player2) {
-                    processRound(moves);
-                }
-            }
-        });
-    }
-}
-
-function processRound(moves) {
-    const playerMove = isPlayer1 ? moves.player1 : moves.player2;
-    const opponentMove = isPlayer1 ? moves.player2 : moves.player1;
+    document.getElementById('roundsLeft').textContent = totalRounds;
     
-    // Store round result in Firebase regardless of outcome
-    let roundResult = {
-        player1Move: moves.player1,
-        player2Move: moves.player2
-    };
-
-    if (moves.player1 === moves.player2) {
-        result = "It's a draw!";
-        draws++;
-        roundResult.winner = 'draw';
-    } else {
-        // Determine if player1 wins
-        const player1Wins = (
-            (moves.player1 === "Paper" && moves.player2 === "Rock") ||
-            (moves.player1 === "Rock" && moves.player2 === "Scissors") ||
-            (moves.player1 === "Scissors" && moves.player2 === "Paper")
-        );
-
-        if ((isPlayer1 && player1Wins) || (!isPlayer1 && !player1Wins)) {
-            result = "You win!";
-            wins++;
-            roundResult.winner = isPlayer1 ? 'player1' : 'player2';
-        } else {
-            result = `${opponentName} wins!`;
-            losses++;
-            roundResult.winner = isPlayer1 ? 'player2' : 'player1';
-        }
-    }
-
-    // Store the round result
-    firebase.database().ref('rooms/' + currentRoom + '/roundResults/' + roundsPlayed).set(roundResult);
-
-    roundsPlayed++;
-    updateScores();
-    displayResult(playerMove, opponentMove, result);
-
-    // Clear moves for next round
-    firebase.database().ref('rooms/' + currentRoom + '/moves').remove().then(() => {
-        // Enable choices for next round
-        enableChoices();
-        
-        if (roundsPlayed >= totalRounds) {
-            setTimeout(showFinalResult, 1000);
-            // Update user stats
-            updateUserStats();
-        }
-    });
+    // Update UI
+    document.getElementById('wins').textContent = wins;
+    document.getElementById('losses').textContent = losses;
+    document.getElementById('draws').textContent = draws;
+    document.getElementById('results').innerHTML = '';
 }
 
-function updateUserStats() {
-    const userRef = firebase.database().ref('users/' + currentUser.uid + '/stats');
-    userRef.transaction((stats) => {
-        if (stats) {
-            stats.gamesPlayed++;
-            stats.wins += wins;
-            stats.losses += losses;
-            stats.draws += draws;
-        }
-        return stats;
-    });
-}
-
+// Play a round of the game
 function playGame(playerChoice) {
-    if (roundsPlayed >= totalRounds) return;
-
-    if (gameMode === 'singleplayer') {
-        playSinglePlayer(playerChoice);
-    } else {
-        playMultiplayer(playerChoice);
-    }
-}
-
-function playSinglePlayer(playerChoice) {
-    const computerChoice = getRandomChoice();
-    const result = determineWinner(playerChoice, computerChoice);
-
-    if (result === "You win!") {
-        wins++;
-    } else if (result === "Computer wins!") {
-        losses++;
-    } else {
-        draws++;
-    }
-
-    roundsPlayed++;
-    updateScores();
-    displayResult(playerChoice, computerChoice, result);
-
     if (roundsPlayed >= totalRounds) {
-        setTimeout(showFinalResult, 1000);
-        // Update user stats
-        updateUserStats();
+        return;
     }
-}
-
-function playMultiplayer(playerChoice) {
-    const playerPath = isPlayer1 ? 'player1' : 'player2';
-    firebase.database().ref('rooms/' + currentRoom + '/moves/' + playerPath).set(playerChoice);
-    disableChoices();
-}
-
-function updateScores() {
+    
+    const choices = ['Rock', 'Paper', 'Scissors'];
+    const computerChoice = choices[Math.floor(Math.random() * 3)];
+    
+    let result = '';
+    
+    // Determine the winner
+    if (playerChoice === computerChoice) {
+        result = 'Draw!';
+        draws++;
+    } else if (
+        (playerChoice === 'Rock' && computerChoice === 'Scissors') ||
+        (playerChoice === 'Paper' && computerChoice === 'Rock') ||
+        (playerChoice === 'Scissors' && computerChoice === 'Paper')
+    ) {
+        result = 'You win!';
+        wins++;
+    } else {
+        result = 'You lose!';
+        losses++;
+    }
+    
+    roundsPlayed++;
+    
+    // Update UI
     document.getElementById('wins').textContent = wins;
     document.getElementById('losses').textContent = losses;
     document.getElementById('draws').textContent = draws;
     document.getElementById('roundsLeft').textContent = totalRounds - roundsPlayed;
-}
-
-function getRandomChoice() {
-    const choices = ["Rock", "Paper", "Scissors"];
-    return choices[Math.floor(Math.random() * choices.length)];
-}
-
-function determineWinner(player1Choice, player2Choice) {
-    if (player1Choice === player2Choice) {
-        return "It's a draw!";
+    
+    // Display result
+    const resultDiv = document.getElementById('results');
+    resultDiv.innerHTML = `
+        <div class="round-result">
+            <p>Round ${roundsPlayed}</p>
+            <div class="choices-display">
+                <div class="choice">
+                    <p>You chose:</p>
+                    <i class="fas fa-hand-${playerChoice.toLowerCase()}"></i>
+                    <p>${playerChoice}</p>
+                </div>
+                <div class="choice">
+                    <p>Computer chose:</p>
+                    <i class="fas fa-hand-${computerChoice.toLowerCase()}"></i>
+                    <p>${computerChoice}</p>
+                </div>
+            </div>
+            <p class="result-text">${result}</p>
+        </div>
+    ` + resultDiv.innerHTML;
+    
+    // Check if game is over
+    if (roundsPlayed >= totalRounds) {
+        endGame();
     }
-
-    const player1Wins = (
-        (player1Choice === "Paper" && player2Choice === "Rock") ||
-        (player1Choice === "Rock" && player2Choice === "Scissors") ||
-        (player1Choice === "Scissors" && player2Choice === "Paper")
-    );
-
-    if (gameMode === 'multiplayer') {
-        if (isPlayer1) {
-            return player1Wins ? "You win!" : `${opponentName} wins!`;
-        } else {
-            return player1Wins ? `${opponentName} wins!` : "You win!";
-        }
-    } else {
-        return player1Wins ? "You win!" : "Computer wins!";
-    }
 }
 
-function showFinalResult() {
-    const gameArea = document.getElementById('gameArea');
-    const finalResult = document.getElementById('finalResult');
+// End the game and show final results
+function endGame() {
+    document.getElementById('gameArea').style.display = 'none';
+    document.getElementById('finalResult').style.display = 'block';
+    
     const finalScore = document.getElementById('finalScore');
+    finalScore.innerHTML = `
+        <div class="final-score-item">
+            <i class="fas fa-trophy"></i> Wins: ${wins}
+        </div>
+        <div class="final-score-item">
+            <i class="fas fa-times"></i> Losses: ${losses}
+        </div>
+        <div class="final-score-item">
+            <i class="fas fa-equals"></i> Draws: ${draws}
+        </div>
+    `;
+    
     const winnerAnnouncement = document.getElementById('winnerAnnouncement');
-
-    gameArea.style.display = 'none';
-    finalResult.style.display = 'block';
-
-    if (gameMode === 'multiplayer') {
-        // Get final round results from Firebase
-        firebase.database().ref('rooms/' + currentRoom + '/roundResults').once('value', (snapshot) => {
+    if (wins > losses) {
+        winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> You Win!';
+        winnerAnnouncement.className = 'winner-announcement win';
+    } else if (losses > wins) {
+        winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> You Lose!';
+        winnerAnnouncement.className = 'winner-announcement lose';
+    } else {
+        winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> It\'s a Draw!';
+        winnerAnnouncement.className = 'winner-announcement draw';
+    }
+    
+    // Update user stats in database if authenticated
+    if (currentUser) {
+        const userStatsRef = ref(database, 'users/' + currentUser.uid + '/stats');
+        get(userStatsRef).then((snapshot) => {
             if (snapshot.exists()) {
-                const roundResults = snapshot.val();
-                let player1Wins = 0;
-                let player2Wins = 0;
-                let drawCount = 0;
-
-                // Count the results
-                Object.values(roundResults).forEach(result => {
-                    if (result.winner === 'draw') {
-                        drawCount++;
-                    } else if (result.winner === 'player1') {
-                        player1Wins++;
-                    } else if (result.winner === 'player2') {
-                        player2Wins++;
-                    }
+                const stats = snapshot.val();
+                set(userStatsRef, {
+                    gamesPlayed: (stats.gamesPlayed || 0) + 1,
+                    wins: (stats.wins || 0) + wins,
+                    losses: (stats.losses || 0) + losses,
+                    draws: (stats.draws || 0) + draws
                 });
-
-                // Set the correct scores based on player position
-                if (isPlayer1) {
-                    wins = player1Wins;
-                    losses = player2Wins;
-                } else {
-                    wins = player2Wins;
-                    losses = player1Wins;
-                }
-                draws = drawCount;
-
-                // Update the display with enhanced formatting
-                const opponentLabel = opponentName;
-                finalScore.innerHTML = `
-                    <p>Final Score:</p>
-                    <p style="font-size: 1.6rem; margin: 15px 0;">
-                        <strong style="color: #4CAF50;">You: ${wins}</strong> | 
-                        <strong style="color: #F44336;">${opponentLabel}: ${losses}</strong> | 
-                        <strong style="color: #2196F3;">Draws: ${draws}</strong>
-                    </p>
-                `;
-
-                if (wins > losses) {
-                    winnerAnnouncement.innerHTML = 'YOU WON 🏆';
-                    winnerAnnouncement.className = 'winner-announcement win';
-                } else if (losses > wins) {
-                    winnerAnnouncement.innerHTML = 'YOU LOST 😔';
-                    winnerAnnouncement.className = 'winner-announcement lose';
-                } else {
-                    winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
-                    winnerAnnouncement.className = 'winner-announcement draw';
-                }
             }
         });
-    } else {
-        // Single player logic with enhanced formatting
-        const opponentLabel = 'Computer';
-        finalScore.innerHTML = `
-            <p>Final Score:</p>
-            <p style="font-size: 1.6rem; margin: 15px 0;">
-                <strong style="color: #4CAF50;">You: ${wins}</strong> | 
-                <strong style="color: #F44336;">${opponentLabel}: ${losses}</strong> | 
-                <strong style="color: #2196F3;">Draws: ${draws}</strong>
-            </p>
-        `;
-
-        if (wins > losses) {
-            winnerAnnouncement.innerHTML = 'YOU WON 🏆';
-            winnerAnnouncement.className = 'winner-announcement win';
-        } else if (losses > wins) {
-            winnerAnnouncement.innerHTML = 'YOU LOST 😔';
-            winnerAnnouncement.className = 'winner-announcement lose';
-        } else {
-            winnerAnnouncement.innerHTML = "IT'S A TIE! 🤝";
-            winnerAnnouncement.className = 'winner-announcement draw';
-        }
-    }
-
-    // If in multiplayer mode, clean up the room after a short delay
-    if (gameMode === 'multiplayer' && currentRoom) {
-        setTimeout(() => {
-            firebase.database().ref('rooms/' + currentRoom).remove();
-        }, 2000);
     }
 }
 
-function disableChoices() {
-    const buttons = document.querySelectorAll('.choices button');
-    buttons.forEach(button => button.disabled = true);
-}
-
-function enableChoices() {
-    const buttons = document.querySelectorAll('.choices button');
-    buttons.forEach(button => button.disabled = false);
-}
-
-function displayResult(playerChoice, opponentChoice, result) {
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.classList.remove('win', 'lose', 'draw');
-    
-    if (result === "You win!") {
-        resultsDiv.classList.add('win');
-    } else if (result.includes("wins!")) {
-        resultsDiv.classList.add('lose');
-    } else {
-        resultsDiv.classList.add('draw');
-    }
-
-    const opponentLabel = gameMode === 'singleplayer' ? "Computer's" : `${opponentName}'s`;
-    resultsDiv.innerHTML = `
-        <p><span style="color: black; font-weight: 700;">Your choice:</span> ${playerChoice}</p>
-        <p><span style="color: black; font-weight: 700;">${opponentLabel} choice:</span> ${opponentChoice}</p>
-        <p><span style="color: black; font-weight: 700;">Result:</span> ${result}</p>
-    `;
-    resultsDiv.classList.add("fade-in");
-
-    setTimeout(() => {
-        resultsDiv.classList.remove("fade-in");
-    }, 500);
-}
-
+// Reset the game
 function resetGame() {
-    if (gameMode === 'multiplayer' && currentRoom) {
-        // Clean up Firebase listeners and room
-        firebase.database().ref('rooms/' + currentRoom).off();
-        firebase.database().ref('rooms/' + currentRoom).remove();
-    }
-    
-    document.getElementById('gameModeSelection').style.display = 'block';
-    document.getElementById('gameArea').style.display = 'none';
     document.getElementById('finalResult').style.display = 'none';
-    document.getElementById('multiplayerRoom').style.display = 'none';
-    
-    currentRoom = '';
-    gameMode = '';
-} 
+    document.getElementById('gameModeSelection').style.display = 'block';
+}
+
+// Helper function to show error messages
+function showError(message) {
+    const errorElement = document.getElementById('errorMessage');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    } else {
+        alert(message);
+    }
+}
+
+// Export game functions for use in HTML
+const gameModule = {
+    selectGameMode,
+    createRoom,
+    joinRoom,
+    startGame,
+    playGame,
+    resetGame
+};
+
+// Make game functions available globally
+window.gameModule = gameModule;
+
+// Export for use in other modules
+export default gameModule;

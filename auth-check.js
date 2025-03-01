@@ -1,39 +1,30 @@
-// Import Firebase auth
-import { getAuth, onAuthStateChanged, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import firebaseConfig from './firebase-config.js';
 
-const auth = getAuth();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-// List of pages that don't require authentication
-const publicPages = ['login.html'];
+// Check if current page is login page
+const isLoginPage = window.location.pathname.includes('login.html');
 
-// Check if current page requires authentication
-const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-const requiresAuth = !publicPages.includes(currentPage);
-
-// Auth state observer
+// Check authentication state
 onAuthStateChanged(auth, (user) => {
-    if (requiresAuth && !user) {
-        // Redirect to login if authentication is required but user is not logged in
-        window.location.href = 'login.html';
-    } else if (currentPage === 'login.html' && user) {
-        // Redirect to home if user is already logged in and tries to access login page
-        window.location.href = 'index.html';
-    } else if (user) {
-        // Update user name if the element exists
-        const userNameElement = document.getElementById('userName');
-        if (userNameElement) {
-            userNameElement.textContent = user.displayName || user.email;
-        }
+  if (user) {
+    // User is signed in
+    console.log("User is signed in:", user.email);
+  } else {
+    // User is signed out
+    console.log("User is signed out");
+    
+    // Redirect to login page if not already on login page
+    if (!isLoginPage) {
+      window.location.href = 'login.html';
     }
+  }
 });
 
-// Make signOut function available globally
-window.signOut = async function() {
-    try {
-        await firebaseSignOut(auth);
-        window.location.href = 'login.html';
-    } catch (error) {
-        console.error('Error signing out:', error);
-        alert('Error signing out. Please try again.');
-    }
-};
+// Export auth for use in other files
+export { auth };

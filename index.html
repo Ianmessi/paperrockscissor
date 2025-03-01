@@ -3,53 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome | Rock Paper Scissors</title>
+    <title>Rock Paper Scissors Game</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="landing-page">
+<body class="home-page">
     <div class="landing-container">
-        <h1>Welcome to Rock Paper Scissors</h1>
-        <div class="user-welcome">
-            Welcome, <span class="user-info user-name" id="userName"></span>!
-            <button onclick="signOut()" class="auth-button">Sign Out</button>
+        <div class="welcome-header">
+            <i class="fas fa-gamepad game-icon"></i>
+            <h1>Rock Paper Scissors</h1>
+            <p class="subtitle">Challenge your friends or play against AI!</p>
         </div>
+
         <div class="menu-options">
             <a href="game.html" class="menu-button">
-                <i class="fas fa-gamepad"></i>
-                Play Game
+                <div class="button-content">
+                    <i class="fas fa-play"></i>
+                    <span>Play Game</span>
+                    <p class="button-description">Start a new game session</p>
+                </div>
             </a>
             <a href="reviews.html" class="menu-button">
-                <i class="fas fa-comments"></i>
-                Reviews
+                <div class="button-content">
+                    <i class="fas fa-comments"></i>
+                    <span>Reviews</span>
+                    <p class="button-description">See what others are saying</p>
+                </div>
             </a>
             <a href="about.html" class="menu-button">
-                <i class="fas fa-user"></i>
-                About Developer
+                <div class="button-content">
+                    <i class="fas fa-user"></i>
+                    <span>About Developer</span>
+                    <p class="button-description">Learn more about the creator</p>
+                </div>
             </a>
+        </div>
+
+        <div class="quick-stats">
+            <div class="stat-item">
+                <i class="fas fa-trophy"></i>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalWins">0</span>
+                    <span class="stat-label">Wins</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-gamepad"></i>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalGames">0</span>
+                    <span class="stat-label">Games</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-star"></i>
+                <div class="stat-info">
+                    <span class="stat-value" id="winRate">0%</span>
+                    <span class="stat-label">Win Rate</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase Config -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1yMW3ixCViH8DT9J3JxutLV1EHSh5vAY",
-            authDomain: "rock-paper-scissors-game-fb9c7.firebaseapp.com",
-            projectId: "rock-paper-scissors-game-fb9c7",
-            storageBucket: "rock-paper-scissors-game-fb9c7.firebasestorage.app",
-            messagingSenderId: "112666661002",
-            appId: "1:112666661002:web:757106430dd7eb6a975d73",
-            measurementId: "G-3738SVHBEJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        window.app = app;
-    </script>
-    
-    <!-- Auth Check -->
+    <!-- Scripts -->
     <script type="module" src="auth-check.js"></script>
+    <script type="module" src="header.js"></script>
+    <script type="module" src="index.js"></script>
 </body>
 </html>

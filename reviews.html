@@ -3,73 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reviews | Rock Paper Scissors</title>
+    <title>Rock Paper Scissors | Reviews</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="reviews-page">
+    <!-- Back button positioned at the top left of the background photo -->
     <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Home
+        <i class="fas fa-arrow-left"></i> Back to Menu
     </a>
     
     <div class="reviews-container">
-        <h2>Game Reviews</h2>
-        
-        <!-- User Welcome Section -->
         <div class="user-welcome">
-            <span>Welcome, <span id="userName" class="user-name"></span></span>
-            <button onclick="signOut()" class="auth-button">Sign Out</button>
+            <span id="userWelcome">Welcome!</span>
         </div>
-
-        <!-- Review Form -->
-        <div class="review-form">
+        
+        <div id="reviewForm" class="review-form">
             <h3>Write a Review</h3>
-            <form id="reviewForm">
-                <select id="rating" required>
-                    <option value="">Select Rating</option>
-                    <option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
-                    <option value="4">4 Stars ⭐⭐⭐⭐</option>
-                    <option value="3">3 Stars ⭐⭐⭐</option>
-                    <option value="2">2 Stars ⭐⭐</option>
-                    <option value="1">1 Star ⭐</option>
-                </select>
-                <textarea id="reviewText" placeholder="Write your review here..." required></textarea>
-                <button type="submit" class="submit-review">Submit Review</button>
-            </form>
+            <select id="rating" required>
+                <option value="">Select Rating</option>
+                <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+                <option value="3">⭐⭐⭐ (3 stars)</option>
+                <option value="2">⭐⭐ (2 stars)</option>
+                <option value="1">⭐ (1 star)</option>
+            </select>
+            <textarea id="reviewText" placeholder="Write your review here..." required></textarea>
+            <button type="button" onclick="window.submitReview()" class="submit-review">Submit Review</button>
         </div>
-
-        <!-- Show/Hide Reviews Button -->
-        <button id="showReviewsBtn" class="show-reviews-btn">
+        
+        <button type="button" onclick="window.showAllReviews()" class="show-reviews-btn">
             <i class="fas fa-comments"></i> Show All Reviews
         </button>
-
-        <!-- Reviews List -->
+        
         <div id="reviewsList" class="reviews-list"></div>
     </div>
 
-    <!-- Firebase Config -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1yMW3ixCViH8DT9J3JxutLV1EHSh5vAY",
-            authDomain: "rock-paper-scissors-game-fb9c7.firebaseapp.com",
-            projectId: "rock-paper-scissors-game-fb9c7",
-            storageBucket: "rock-paper-scissors-game-fb9c7.firebasestorage.app",
-            messagingSenderId: "112666661002",
-            appId: "1:112666661002:web:757106430dd7eb6a975d73",
-            measurementId: "G-3738SVHBEJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        window.app = app;
-    </script>
-    
-    <!-- Auth Check -->
+    <!-- Scripts -->
     <script type="module" src="auth-check.js"></script>
-    
-    <!-- Reviews JavaScript -->
+    <script type="module" src="header.js"></script>
     <script type="module" src="reviews.js"></script>
 </body>
 </html> 

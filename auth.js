@@ -25,57 +25,103 @@ showLoginLink.addEventListener('click', (e) => {
     errorMessage.style.display = 'none';
 });
 
-// Login Form Submit
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+// Login function
+function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const rememberMe = document.getElementById('remember').checked;
+    const errorMessage = document.getElementById('error-message');
 
-    try {
-        if (rememberMe) {
-            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        } else {
-            await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
-        }
-        
-        await auth.signInWithEmailAndPassword(email, password);
-        window.location.href = 'index.html'; // Redirect to home page after successful login
-    } catch (error) {
-        showError(error.message);
-    }
-});
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Successful login
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            errorMessage.textContent = error.message;
+        });
+}
 
-// Register Form Submit
-registerForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+// Sign up function
+function signup() {
+    const username = document.getElementById('signup-username').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const errorMessage = document.getElementById('signup-error-message');
 
-    if (password !== confirmPassword) {
-        showError('Passwords do not match');
-        return;
-    }
-
-    try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        window.location.href = 'index.html'; // Redirect to home page after successful registration
-    } catch (error) {
-        showError(error.message);
-    }
-});
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Update profile with username
+            return userCredential.user.updateProfile({
+                displayName: username
+            });
+        })
+        .then(() => {
+            // Create user record in database
+            const user = auth.currentUser;
+            return firebase.database().ref('users/' + user.uid).set({
+                username: username,
+                email: email,
+                stats: {
+                    gamesPlayed: 0,
+                    wins: 0,
+                    losses: 0,
+                    draws: 0
+                }
+            });
+        })
+        .then(() => {
+            // Redirect to home page
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            errorMessage.textContent = error.message;
+        });
+}
 
 // Google Sign In
-googleLoginBtn.addEventListener('click', async () => {
+function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-        await auth.signInWithPopup(provider);
-        window.location.href = 'index.html'; // Redirect to home page after successful Google sign-in
-    } catch (error) {
-        showError(error.message);
-    }
-});
+    const errorMessage = document.getElementById('error-message');
+
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            const user = result.user;
+            // Check if user exists in database
+            return firebase.database().ref('users/' + user.uid).once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        // Create new user record
+                        return firebase.database().ref('users/' + user.uid).set({
+                            username: user.displayName,
+                            email: user.email,
+                            stats: {
+                                gamesPlayed: 0,
+                                wins: 0,
+                                losses: 0,
+                                draws: 0
+                            }
+                        });
+                    }
+                });
+        })
+        .then(() => {
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            errorMessage.textContent = error.message;
+        });
+}
+
+// Toggle between login and signup forms
+function showSignupForm() {
+    document.querySelector('.login-box').style.display = 'none';
+    document.querySelector('.signup-box').style.display = 'block';
+}
+
+function showLoginForm() {
+    document.querySelector('.signup-box').style.display = 'none';
+    document.querySelector('.login-box').style.display = 'block';
+}
 
 // Forgot Password
 forgotPasswordLink.addEventListener('click', async (e) => {
@@ -117,7 +163,6 @@ function showError(message, type = 'error') {
 // Check Authentication State
 auth.onAuthStateChanged((user) => {
     if (user && window.location.pathname.includes('login.html')) {
-        // If user is signed in and on login page, redirect to home
         window.location.href = 'index.html';
     }
 }); 
