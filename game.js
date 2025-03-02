@@ -593,23 +593,32 @@ async function endGame() {
             const snapshot = await get(userStatsRef);
             const currentStats = snapshot.exists() ? snapshot.val() : {
                 gamesPlayed: 0,
-                gamesWon: 0,
                 totalWins: 0,
                 totalLosses: 0,
-                totalDraws: 0
+                totalDraws: 0,
+                winRate: 0
             };
             
+            // Calculate new stats
+            const newGamesPlayed = currentStats.gamesPlayed + 1;
+            const newTotalWins = currentStats.totalWins + wins;
+            const newTotalLosses = currentStats.totalLosses + losses;
+            const newTotalDraws = currentStats.totalDraws + draws;
+            
+            // Calculate win rate
+            const newWinRate = Math.round((newTotalWins / newGamesPlayed) * 100);
+            
             const updatedStats = {
-                gamesPlayed: currentStats.gamesPlayed + 1,
-                gamesWon: currentStats.gamesWon + (wins > losses ? 1 : 0),
-                totalWins: currentStats.totalWins + wins,
-                totalLosses: currentStats.totalLosses + losses,
-                totalDraws: currentStats.totalDraws + draws,
-                winRate: Math.round(((currentStats.gamesWon + (wins > losses ? 1 : 0)) / (currentStats.gamesPlayed + 1)) * 100)
+                gamesPlayed: newGamesPlayed,
+                totalWins: newTotalWins,
+                totalLosses: newTotalLosses,
+                totalDraws: newTotalDraws,
+                winRate: newWinRate,
+                lastUpdated: serverTimestamp()
             };
             
             await set(userStatsRef, updatedStats);
-            console.log("Stats updated successfully");
+            console.log("Stats updated successfully:", updatedStats);
             
             // Enable navigation buttons after stats are updated
             if (playAgainButton) playAgainButton.disabled = false;

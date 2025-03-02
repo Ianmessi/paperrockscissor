@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, get, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -66,9 +66,10 @@ async function loadLeaderboard() {
     leaderboardList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading leaderboard...</div>';
 
     try {
-        // Get all users
+        // Get top 10 users ordered by total wins
         const usersRef = ref(database, 'users');
-        const snapshot = await get(usersRef);
+        const topPlayersQuery = query(usersRef, orderByChild('stats/totalWins'), limitToLast(10));
+        const snapshot = await get(topPlayersQuery);
 
         if (!snapshot.exists()) {
             leaderboardList.innerHTML = '<div class="no-data">No players found</div>';
