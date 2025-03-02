@@ -601,13 +601,17 @@ async function endGame() {
                 winRate: 0
             };
             
-            // Calculate new stats
+            // Calculate new stats based on game outcome, not round wins
             const newGamesPlayed = currentStats.gamesPlayed + 1;
-            const newTotalWins = currentStats.totalWins + wins;
-            const newTotalLosses = currentStats.totalLosses + losses;
-            const newTotalDraws = currentStats.totalDraws + draws;
+            const gameWon = wins > losses;
+            const gameLost = losses > wins;
+            const gameDraw = wins === losses;
             
-            // Calculate win rate
+            const newTotalWins = currentStats.totalWins + (gameWon ? 1 : 0);
+            const newTotalLosses = currentStats.totalLosses + (gameLost ? 1 : 0);
+            const newTotalDraws = currentStats.totalDraws + (gameDraw ? 1 : 0);
+            
+            // Calculate win rate based on games won vs games played
             const newWinRate = Math.round((newTotalWins / newGamesPlayed) * 100);
             
             const updatedStats = {
