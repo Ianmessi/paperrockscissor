@@ -1533,26 +1533,30 @@ body.about-page {
 }
 
 .round-result {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 20px;
-    margin: 15px 0;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 .round-result.win {
-    background: rgba(76, 175, 80, 0.2);
-    border: 2px solid rgba(76, 175, 80, 0.5);
+    background: rgba(76, 175, 80, 0.15);
+    border-left: 5px solid #4CAF50;
+    box-shadow: 0 2px 10px rgba(76, 175, 80, 0.2);
 }
 
 .round-result.lose {
-    background: rgba(244, 67, 54, 0.2);
-    border: 2px solid rgba(244, 67, 54, 0.5);
+    background: rgba(244, 67, 54, 0.15);
+    border-left: 5px solid #F44336;
+    box-shadow: 0 2px 10px rgba(244, 67, 54, 0.2);
 }
 
 .round-result.draw {
-    background: rgba(33, 150, 243, 0.2);
-    border: 2px solid rgba(33, 150, 243, 0.5);
+    background: rgba(33, 150, 243, 0.15);
+    border-left: 5px solid #2196F3;
+    box-shadow: 0 2px 10px rgba(33, 150, 243, 0.2);
 }
 
 .round-result h3 {
@@ -2039,4 +2043,38 @@ body.about-page {
     color: white;
     font-size: 1.1rem;
     margin: 0;
+}
+
+.final-rounds-summary {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.final-rounds-summary h3 {
+    color: #333;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.final-rounds-summary .round-result {
+    transform: scale(0.95);
+    margin-bottom: 10px;
+}
+
+.final-rounds-summary .round-result.win {
+    background: rgba(76, 175, 80, 0.15);
+    border-left: 5px solid #4CAF50;
+}
+
+.final-rounds-summary .round-result.lose {
+    background: rgba(244, 67, 54, 0.15);
+    border-left: 5px solid #F44336;
+}
+
+.final-rounds-summary .round-result.draw {
+    background: rgba(33, 150, 243, 0.15);
+    border-left: 5px solid #2196F3;
 }

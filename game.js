@@ -171,13 +171,10 @@ async function joinRoom() {
         }
 
         const roomData = snapshot.val();
-        if (!roomData.player1) {
+        
+        // Additional validation checks
+        if (!roomData || !roomData.player1) {
             showError('Invalid room. Please try a different code.');
-            return;
-        }
-
-        if (roomData.player2) {
-            showError('Room is full. Please try a different code.');
             return;
         }
 
@@ -186,35 +183,51 @@ async function joinRoom() {
             return;
         }
 
-        currentRoom = roomCode;
-        isPlayer1 = false;
-        opponentName = roomData.player1.name;
+        if (roomData.player2 && roomData.player2.id) {
+            showError('Room is full. Please try a different code.');
+            return;
+        }
 
-        // Join the room
-        await update(roomRef, {
-            player2: {
+        // Use a transaction to safely join the room
+        const player2Ref = ref(database, `rooms/${roomCode}/player2`);
+        const gameStateRef = ref(database, `rooms/${roomCode}/gameState`);
+        
+        try {
+            // Attempt to set player2 data atomically
+            await set(player2Ref, {
                 id: currentUser.uid,
                 name: currentUser.displayName || currentUser.email.split('@')[0],
                 ready: true
-            },
-            gameState: 'starting'
-        });
+            });
 
-        console.log("Successfully joined room");
-        
-        // Update UI
-        document.getElementById('roomCreation').style.display = 'none';
-        document.getElementById('waitingRoom').style.display = 'block';
-        document.getElementById('displayRoomCode').textContent = roomCode;
-        document.getElementById('playerCount').textContent = '2/2';
-        document.getElementById('waitingMessage').textContent = 'Joined room! Starting game...';
-        
-        // Start the game after a short delay
-        setTimeout(() => startGame(5), 1500);
+            // Update game state
+            await set(gameStateRef, 'starting');
+            
+            currentRoom = roomCode;
+            isPlayer1 = false;
+            opponentName = roomData.player1.name;
+
+            console.log("Successfully joined room");
+            
+            // Update UI
+            document.getElementById('roomCreation').style.display = 'none';
+            document.getElementById('waitingRoom').style.display = 'block';
+            document.getElementById('displayRoomCode').textContent = roomCode;
+            document.getElementById('playerCount').textContent = '2/2';
+            document.getElementById('waitingMessage').textContent = 'Joined room! Starting game...';
+            
+            // Start the game after a short delay
+            setTimeout(() => startGame(5), 1500);
+
+        } catch (error) {
+            console.error("Error joining room:", error);
+            showError('Failed to join room. Please try again.');
+            return;
+        }
 
     } catch (error) {
-        console.error("Error joining room:", error);
-        showError('Failed to join room. Please try again.');
+        console.error("Error checking room:", error);
+        showError('Failed to check room status. Please try again.');
     }
 }
 
