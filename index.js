@@ -13,12 +13,16 @@ const auth = getAuth(app);
 const totalWinsElement = document.getElementById('totalWins');
 const totalGamesElement = document.getElementById('totalGames');
 const totalLossesElement = document.getElementById('winRate'); // Reuse winRate element for losses
+const totalDrawsElement = document.getElementById('totalDraws');
+const winRateElement = document.getElementById('winRatePercent');
 const userWelcome = document.getElementById('userWelcome');
 
 console.log("index.js loaded - DOM Elements:", {
     totalWinsElement,
     totalGamesElement,
     totalLossesElement,
+    totalDrawsElement,
+    winRateElement,
     userWelcome
 });
 
@@ -31,6 +35,8 @@ function updateStatsUI(stats) {
         if (totalWinsElement) totalWinsElement.textContent = '0';
         if (totalGamesElement) totalGamesElement.textContent = '0';
         if (totalLossesElement) totalLossesElement.textContent = '0';
+        if (totalDrawsElement) totalDrawsElement.textContent = '0';
+        if (winRateElement) winRateElement.textContent = '0%';
         return;
     }
     
@@ -38,19 +44,35 @@ function updateStatsUI(stats) {
     const gamesPlayed = stats.gamesPlayed || 0;
     const totalWins = stats.totalWins || 0;
     const totalLosses = stats.totalLosses || 0;
+    const totalDraws = stats.totalDraws || 0;
+    
+    // Calculate win rate
+    const winRate = gamesPlayed > 0 ? Math.round((totalWins / gamesPlayed) * 100) : 0;
     
     console.log("Processing stats for display:", {
         gamesPlayed,
         totalWins,
-        totalLosses
+        totalLosses,
+        totalDraws,
+        winRate
     });
     
     // Update UI elements if they exist
     if (totalWinsElement) totalWinsElement.textContent = String(totalWins);
     if (totalGamesElement) totalGamesElement.textContent = String(gamesPlayed);
-    if (totalLossesElement) {
-        totalLossesElement.textContent = String(totalLosses);
-        totalLossesElement.className = 'stat-value'; // Reset classes
+    if (totalLossesElement) totalLossesElement.textContent = String(totalLosses);
+    if (totalDrawsElement) totalDrawsElement.textContent = String(totalDraws);
+    if (winRateElement) {
+        winRateElement.textContent = winRate + '%';
+        // Add color classes based on win rate
+        winRateElement.className = 'stat-value';
+        if (winRate >= 60) {
+            winRateElement.classList.add('high-rate');
+        } else if (winRate >= 40) {
+            winRateElement.classList.add('medium-rate');
+        } else {
+            winRateElement.classList.add('low-rate');
+        }
     }
 }
 
