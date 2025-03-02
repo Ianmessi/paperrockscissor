@@ -275,19 +275,34 @@ function setupMultiplayerListeners() {
             const moves = snapshot.val();
             console.log("Moves updated:", moves);
             
-            // Process new moves if both players have made their choice
+            // Only process if both players have made their moves for the current round
             if (moves.player1 && moves.player2 && moves.round === roundsPlayed + 1) {
                 console.log("Both players made their move for round", moves.round);
+                
+                // Remove any waiting message
+                const waitingMessage = document.querySelector('.waiting-message');
+                if (waitingMessage) {
+                    waitingMessage.remove();
+                }
                 
                 // Process the round
                 processMultiplayerRound(moves);
             }
         }
     });
+    
+    // Initialize moves for first round
+    set(ref(database, 'rooms/' + currentRoom + '/moves'), { round: 1 });
 }
 
 // Process a multiplayer round
 function processMultiplayerRound(moves) {
+    // Verify we have both moves and are on the correct round
+    if (!moves.player1 || !moves.player2 || moves.round !== roundsPlayed + 1) {
+        console.log("Invalid round state, waiting for both players");
+        return;
+    }
+
     const playerChoice = isPlayer1 ? moves.player1 : moves.player2;
     const opponentChoice = isPlayer1 ? moves.player2 : moves.player1;
     
@@ -322,26 +337,37 @@ function processMultiplayerRound(moves) {
     // Display round result
     displayRoundResult(playerChoice, opponentChoice, result, roundsPlayed);
     
-    // Reset the moves for the next round
+    // Reset the moves for the next round and update round number atomically
     const movesRef = ref(database, 'rooms/' + currentRoom + '/moves');
-    set(movesRef, { round: roundsPlayed + 1 });
+    set(movesRef, { 
+        round: roundsPlayed + 1,
+        lastProcessedRound: roundsPlayed,
+        player1: null,
+        player2: null
+    });
     
     // Check if game is over
     if (roundsPlayed >= totalRounds) {
         endGame();
-    } else {
-        // Re-enable choice buttons for next round
-        const choiceButtons = document.querySelectorAll('.choices button');
-        choiceButtons.forEach(button => {
-            button.disabled = false;
-        });
     }
 }
 
 // Display result for a round
 function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
     const resultDiv = document.getElementById('results');
-    const resultClass = result.includes('WIN') ? 'win' : result.includes('LOSE') ? 'lose' : 'draw';
+    
+    // Standardize result text
+    let standardResult = '';
+    if (result.includes('WIN') || result === 'You win!') {
+        standardResult = 'YOU WIN';
+    } else if (result.includes('LOSE') || result === 'You lose!') {
+        standardResult = 'YOU LOSE';
+    } else {
+        standardResult = 'DRAW';
+    }
+    
+    const resultClass = standardResult === 'YOU WIN' ? 'win' : 
+                       standardResult === 'YOU LOSE' ? 'lose' : 'draw';
     
     // Determine the opponent label based on game mode
     const opponentLabel = gameMode === 'singleplayer' ? 
@@ -363,7 +389,7 @@ function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
                     <p>${opponentChoice}</p>
                 </div>
             </div>
-            <p class="result-text ${resultClass}">${result}</p>
+            <p class="result-text ${resultClass}">${standardResult}</p>
         </div>
     ` + resultDiv.innerHTML;
 }
@@ -423,20 +449,6 @@ function playGame(playerChoice) {
             }
             
             resultDiv.innerHTML = waitingHTML + resultDiv.innerHTML;
-            
-            // If both players have made their move, process the round
-            if (moves.player1 && moves.player2) {
-                console.log("Both players made their move, processing round");
-                
-                // Remove waiting message
-                const waitingMessage = document.querySelector('.waiting-message');
-                if (waitingMessage) {
-                    waitingMessage.remove();
-                }
-                
-                // Process the round
-                processMultiplayerRound(moves);
-            }
         });
         
         return;
@@ -450,17 +462,17 @@ function playGame(playerChoice) {
     
     // Determine the winner
     if (playerChoice === computerChoice) {
-        result = 'Draw!';
+        result = 'DRAW';
         draws++;
     } else if (
         (playerChoice === 'Rock' && computerChoice === 'Scissors') ||
         (playerChoice === 'Paper' && computerChoice === 'Rock') ||
         (playerChoice === 'Scissors' && computerChoice === 'Paper')
     ) {
-        result = 'You win!';
+        result = 'YOU WIN';
         wins++;
     } else {
-        result = 'You lose!';
+        result = 'YOU LOSE';
         losses++;
     }
     
