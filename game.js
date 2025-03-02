@@ -341,7 +341,12 @@ function processMultiplayerRound(moves) {
 // Display result for a round
 function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
     const resultDiv = document.getElementById('results');
-    const resultClass = result === 'YOU WIN' ? 'win' : result === 'YOU LOSE' ? 'lose' : 'draw';
+    const resultClass = result.includes('WIN') ? 'win' : result.includes('LOSE') ? 'lose' : 'draw';
+    
+    // Determine the opponent label based on game mode
+    const opponentLabel = gameMode === 'singleplayer' ? 
+        "Computer's choice:" : 
+        `${opponentName}'s choice:`;
     
     resultDiv.innerHTML = `
         <div class="round-result ${resultClass}">
@@ -353,7 +358,7 @@ function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
                     <p>${playerChoice}</p>
                 </div>
                 <div class="choice">
-                    <p>Opponent's choice:</p>
+                    <p>${opponentLabel}</p>
                     <i class="fas fa-hand-${opponentChoice.toLowerCase()}"></i>
                     <p>${opponentChoice}</p>
                 </div>
@@ -383,9 +388,13 @@ function playGame(playerChoice) {
             
             if (snapshot.exists()) {
                 moves = snapshot.val();
+                // Ensure we're on the current round
+                if (moves.round !== roundsPlayed + 1) {
+                    moves = { round: roundsPlayed + 1 };
+                }
             }
             
-            // Add player's move
+            // Add or update player's move
             if (isPlayer1) {
                 moves.player1 = playerChoice;
             } else {
@@ -397,28 +406,27 @@ function playGame(playerChoice) {
             // Update moves in database
             set(movesRef, moves);
             
-            // Disable choice buttons until next round
-            const choiceButtons = document.querySelectorAll('.choices button');
-            choiceButtons.forEach(button => {
-                button.disabled = true;
-            });
-            
-            // Show waiting message
+            // Show waiting message with current choices
             const resultDiv = document.getElementById('results');
-            resultDiv.innerHTML = `
+            const waitingHTML = `
                 <div class="waiting-message">
+                    <p>You chose: ${playerChoice}</p>
                     <p>Waiting for ${opponentName} to make their choice...</p>
+                    <p class="small">(You can still change your choice)</p>
                 </div>
-            ` + resultDiv.innerHTML;
+            `;
+            
+            // Remove any existing waiting message before adding new one
+            const existingWaitingMessage = resultDiv.querySelector('.waiting-message');
+            if (existingWaitingMessage) {
+                existingWaitingMessage.remove();
+            }
+            
+            resultDiv.innerHTML = waitingHTML + resultDiv.innerHTML;
             
             // If both players have made their move, process the round
             if (moves.player1 && moves.player2) {
                 console.log("Both players made their move, processing round");
-                
-                // Re-enable choice buttons
-                choiceButtons.forEach(button => {
-                    button.disabled = false;
-                });
                 
                 // Remove waiting message
                 const waitingMessage = document.querySelector('.waiting-message');
@@ -465,7 +473,7 @@ function playGame(playerChoice) {
     document.getElementById('roundsLeft').textContent = totalRounds - roundsPlayed;
     
     // Display round result
-    displayRoundResult(playerChoice, computerChoice, result, roundsPlayed, true);
+    displayRoundResult(playerChoice, computerChoice, result, roundsPlayed);
     
     // Check if game is over
     if (roundsPlayed >= totalRounds) {
