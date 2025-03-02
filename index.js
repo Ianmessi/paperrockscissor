@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { firebaseConfig } from './firebase-config.js';
 
 // Initialize Firebase
@@ -13,13 +13,13 @@ const auth = getAuth(app);
 const totalWinsElement = document.getElementById('totalWins');
 const totalGamesElement = document.getElementById('totalGames');
 const winRateElement = document.getElementById('winRate');
-const welcomeMessage = document.getElementById('welcomeMessage');
+const userWelcome = document.getElementById('userWelcome');
 
 console.log("index.js loaded - DOM Elements:", {
     totalWinsElement,
     totalGamesElement,
     winRateElement,
-    welcomeMessage
+    userWelcome
 });
 
 // Function to update the UI with stats
@@ -34,11 +34,11 @@ function updateStatsUI(stats) {
     
     console.log("Updating UI with stats:", stats);
     
-    // Calculate game-based statistics
+    // Get values from stats, defaulting to 0 if not present
     const gamesPlayed = stats.gamesPlayed || 0;
     const totalWins = stats.totalWins || 0;
     
-    // Calculate win rate based on total wins vs games played
+    // Calculate win rate
     const winRate = gamesPlayed > 0 
         ? Math.round((totalWins / gamesPlayed) * 100) 
         : 0;
@@ -73,48 +73,25 @@ onAuthStateChanged(auth, (user) => {
     
     if (user) {
         console.log('User is signed in:', user.uid);
-        welcomeMessage.textContent = `Welcome, ${user.displayName || user.email}!`;
-        loadUserStats(user.uid);
+        userWelcome.textContent = `Welcome, ${user.displayName || user.email}!`;
+        
+        // Set up real-time listener for user stats
+        const userStatsRef = ref(database, 'users/' + user.uid + '/stats');
+        onValue(userStatsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const stats = snapshot.val();
+                console.log('Received user stats:', stats);
+                updateStatsUI(stats);
+            } else {
+                console.log('No stats found for user');
+                updateStatsUI(null);
+            }
+        }, (error) => {
+            console.error('Error loading stats:', error);
+            updateStatsUI(null);
+        });
     } else {
         console.log('No user signed in');
         window.location.href = 'login.html';
     }
 });
-
-function loadUserStats(userId) {
-    console.log('Loading stats for user:', userId);
-    const userStatsRef = ref(database, 'users/' + userId + '/stats');
-    
-    onValue(userStatsRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const stats = snapshot.val();
-            console.log('User stats:', stats);
-            
-            // Update UI with stats
-            totalGamesElement.textContent = stats.gamesPlayed || 0;
-            totalWinsElement.textContent = stats.totalWins || 0;
-            
-            // Use the winRate directly from stats if available, otherwise calculate it
-            const winRate = stats.winRate || (stats.gamesPlayed > 0 
-                ? Math.round((stats.totalWins / stats.gamesPlayed) * 100) 
-                : 0);
-            
-            winRateElement.textContent = winRate + '%';
-            
-            // Add color classes based on win rate
-            winRateElement.className = 'stat-value';
-            if (winRate >= 60) {
-                winRateElement.classList.add('high-rate');
-            } else if (winRate >= 40) {
-                winRateElement.classList.add('medium-rate');
-            } else {
-                winRateElement.classList.add('low-rate');
-            }
-        } else {
-            console.log('No stats found for user');
-            totalGamesElement.textContent = '0';
-            totalWinsElement.textContent = '0';
-            winRateElement.textContent = '0%';
-        }
-    });
-}
