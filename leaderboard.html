@@ -5,41 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rock Paper Scissors - Leaderboard</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="leaderboard-page">
-    <div class="leaderboard-container">
-        <button onclick="window.history.back()" class="back-button">
-            <i class="fas fa-chevron-left"></i> Back
-        </button>
-        
-        <h1><i class="fas fa-trophy"></i> Leaderboard</h1>
-        
-        <div class="leaderboard-header">
-            <div class="rank-header">Rank</div>
-            <div class="player-header">Player</div>
-            <div class="stats-header">
-                <div>Wins</div>
-                <div>Games</div>
-                <div>Win Rate</div>
+<body>
+    <div class="leaderboard-page">
+        <nav class="navigation">
+            <a href="index.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back to Game
+            </a>
+        </nav>
+
+        <div class="leaderboard-container">
+            <h1>Leaderboard</h1>
+            
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i> Loading leaderboard...
             </div>
-        </div>
-        
-        <div id="leaderboardList" class="leaderboard-list">
-            <!-- Leaderboard entries will be populated here -->
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-                Loading leaderboard...
+
+            <!-- Error Container -->
+            <div id="errorContainer" class="error-container" style="display: none;">
+            </div>
+
+            <!-- Leaderboard List -->
+            <div id="leaderboardList" class="leaderboard-list">
+                <!-- Entries will be added here dynamically -->
             </div>
         </div>
     </div>
 
-    <!-- Error message container -->
-    <div id="errorMessage" class="error-message" style="display: none;"></div>
-
-    <!-- Module Scripts -->
+    <!-- Auth check script -->
     <script type="module" src="auth-check.js"></script>
+    <!-- Leaderboard script -->
     <script type="module" src="leaderboard.js"></script>
 </body>
 </html> 
