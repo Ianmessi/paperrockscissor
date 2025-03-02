@@ -296,15 +296,20 @@ function endGame() {
     `;
     
     const winnerAnnouncement = document.getElementById('winnerAnnouncement');
+    let gameResult = '';
+    
     if (wins > losses) {
         winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> You Win!';
         winnerAnnouncement.className = 'winner-announcement win';
+        gameResult = 'win';
     } else if (losses > wins) {
         winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> You Lose!';
         winnerAnnouncement.className = 'winner-announcement lose';
+        gameResult = 'loss';
     } else {
         winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> It\'s a Draw!';
         winnerAnnouncement.className = 'winner-announcement draw';
+        gameResult = 'draw';
     }
     
     // Update user stats in database if authenticated
@@ -313,13 +318,43 @@ function endGame() {
         get(userStatsRef).then((snapshot) => {
             if (snapshot.exists()) {
                 const stats = snapshot.val();
-                set(userStatsRef, {
+                
+                // Update stats based on game outcome, not individual rounds
+                const updatedStats = {
                     gamesPlayed: (stats.gamesPlayed || 0) + 1,
-                    wins: (stats.wins || 0) + wins,
-                    losses: (stats.losses || 0) + losses,
-                    draws: (stats.draws || 0) + draws
-                });
+                    wins: (stats.wins || 0) + (gameResult === 'win' ? 1 : 0),
+                    losses: (stats.losses || 0) + (gameResult === 'loss' ? 1 : 0),
+                    draws: (stats.draws || 0) + (gameResult === 'draw' ? 1 : 0)
+                };
+                
+                // Also track round stats for detailed analytics
+                updatedStats.roundsPlayed = (stats.roundsPlayed || 0) + roundsPlayed;
+                updatedStats.roundsWon = (stats.roundsWon || 0) + wins;
+                updatedStats.roundsLost = (stats.roundsLost || 0) + losses;
+                updatedStats.roundsDrawn = (stats.roundsDrawn || 0) + draws;
+                
+                console.log("Updating user stats:", updatedStats);
+                
+                set(userStatsRef, updatedStats);
+            } else {
+                // Create new stats object if none exists
+                const newStats = {
+                    gamesPlayed: 1,
+                    wins: gameResult === 'win' ? 1 : 0,
+                    losses: gameResult === 'loss' ? 1 : 0,
+                    draws: gameResult === 'draw' ? 1 : 0,
+                    roundsPlayed: roundsPlayed,
+                    roundsWon: wins,
+                    roundsLost: losses,
+                    roundsDrawn: draws
+                };
+                
+                console.log("Creating new user stats:", newStats);
+                
+                set(userStatsRef, newStats);
             }
+        }).catch(error => {
+            console.error("Error updating stats:", error);
         });
     }
 }
