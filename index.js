@@ -32,36 +32,38 @@ function updateStatsUI(stats) {
         return;
     }
     
-    console.log("Updating UI with stats:", stats);
+    console.log("Raw stats from Firebase:", stats);
     
-    // Get values from stats, defaulting to 0 if not present
-    const gamesPlayed = stats.gamesPlayed || 0;
-    const totalWins = stats.totalWins || 0;
+    // Get values from stats, ensuring we handle both direct values and nested objects
+    const gamesPlayed = typeof stats.gamesPlayed === 'number' ? stats.gamesPlayed : 0;
+    const totalWins = typeof stats.totalWins === 'number' ? stats.totalWins : 0;
     
     // Calculate win rate
     const winRate = gamesPlayed > 0 
         ? Math.round((totalWins / gamesPlayed) * 100) 
         : 0;
     
-    console.log("Calculated stats:", {
+    console.log("Processing stats:", {
         gamesPlayed,
         totalWins,
-        winRate: winRate + '%'
+        calculatedWinRate: winRate + '%'
     });
     
-    // Update UI
-    totalWinsElement.textContent = totalWins;
-    totalGamesElement.textContent = gamesPlayed;
-    winRateElement.textContent = winRate + '%';
+    // Update UI with strict type checking
+    if (totalWinsElement) totalWinsElement.textContent = String(totalWins);
+    if (totalGamesElement) totalGamesElement.textContent = String(gamesPlayed);
+    if (winRateElement) winRateElement.textContent = winRate + '%';
     
     // Add color classes based on win rate
-    winRateElement.className = 'stat-value';
-    if (winRate >= 60) {
-        winRateElement.classList.add('high-rate');
-    } else if (winRate >= 40) {
-        winRateElement.classList.add('medium-rate');
-    } else {
-        winRateElement.classList.add('low-rate');
+    if (winRateElement) {
+        winRateElement.className = 'stat-value';
+        if (winRate >= 60) {
+            winRateElement.classList.add('high-rate');
+        } else if (winRate >= 40) {
+            winRateElement.classList.add('medium-rate');
+        } else {
+            winRateElement.classList.add('low-rate');
+        }
     }
     
     console.log("UI updated with stats");
