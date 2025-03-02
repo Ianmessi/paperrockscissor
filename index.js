@@ -36,21 +36,21 @@ function updateStatsUI(stats) {
     
     // Calculate game-based statistics
     const gamesPlayed = stats.gamesPlayed || 0;
-    const gamesWon = stats.wins || 0;
+    const totalWins = stats.totalWins || 0;
     
-    // Calculate win rate based on games won vs games played
+    // Calculate win rate based on total wins vs games played
     const winRate = gamesPlayed > 0 
-        ? Math.round((gamesWon / gamesPlayed) * 100) 
+        ? Math.round((totalWins / gamesPlayed) * 100) 
         : 0;
     
     console.log("Calculated stats:", {
         gamesPlayed,
-        gamesWon,
+        totalWins,
         winRate: winRate + '%'
     });
     
     // Update UI
-    totalWinsElement.textContent = gamesWon;
+    totalWinsElement.textContent = totalWins;
     totalGamesElement.textContent = gamesPlayed;
     winRateElement.textContent = winRate + '%';
     
@@ -92,12 +92,12 @@ function loadUserStats(userId) {
             
             // Update UI with stats
             totalGamesElement.textContent = stats.gamesPlayed || 0;
-            totalWinsElement.textContent = stats.gamesWon || 0;
+            totalWinsElement.textContent = stats.totalWins || 0;
             
-            // Calculate win rate based on games won vs games played
-            const winRate = stats.gamesPlayed > 0 
-                ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) 
-                : 0;
+            // Use the winRate directly from stats if available, otherwise calculate it
+            const winRate = stats.winRate || (stats.gamesPlayed > 0 
+                ? Math.round((stats.totalWins / stats.gamesPlayed) * 100) 
+                : 0);
             
             winRateElement.textContent = winRate + '%';
             
