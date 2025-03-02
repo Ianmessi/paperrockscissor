@@ -10,13 +10,15 @@ const database = getDatabase(app);
 const auth = getAuth(app);
 
 // DOM Elements
-const totalWinsElement = document.getElementById('totalWins');
+const roundWinsElement = document.getElementById('roundWins');
+const gamesWonElement = document.getElementById('gamesWon');
 const totalGamesElement = document.getElementById('totalGames');
 const winRateElement = document.getElementById('winRate');
 const userWelcome = document.getElementById('userWelcome');
 
 console.log("index.js loaded - DOM Elements:", {
-    totalWinsElement,
+    roundWinsElement,
+    gamesWonElement,
     totalGamesElement,
     winRateElement,
     userWelcome
@@ -28,25 +30,29 @@ function updateStatsUI(stats) {
     
     if (!stats) {
         console.log("No stats provided, using defaults");
-        if (totalWinsElement) totalWinsElement.textContent = '0';
+        if (roundWinsElement) roundWinsElement.textContent = '0';
+        if (gamesWonElement) gamesWonElement.textContent = '0';
         if (totalGamesElement) totalGamesElement.textContent = '0';
         if (winRateElement) winRateElement.textContent = '0%';
         return;
     }
     
-    // Get values from stats, ensuring we use complete game stats
+    // Get values from stats
     const gamesPlayed = stats.gamesPlayed || 0;
-    const totalWins = stats.totalWins || 0;  // This is complete game wins only
-    const winRate = stats.winRate || 0;  // Using the pre-calculated win rate
+    const roundWins = stats.totalWins || 0;  // This is total round wins
+    const gamesWon = stats.gamesWon || 0;    // This is complete game wins
+    const winRate = stats.winRate || 0;      // Using the pre-calculated win rate
     
     console.log("Processing stats for display:", {
         gamesPlayed,
-        totalWins,
+        roundWins,
+        gamesWon,
         winRate
     });
     
     // Update UI elements if they exist
-    if (totalWinsElement) totalWinsElement.textContent = String(totalWins);
+    if (roundWinsElement) roundWinsElement.textContent = String(roundWins);
+    if (gamesWonElement) gamesWonElement.textContent = String(gamesWon);
     if (totalGamesElement) totalGamesElement.textContent = String(gamesPlayed);
     if (winRateElement) {
         winRateElement.textContent = winRate + '%';
