@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rock Paper Scissors | Game</title>
+    <title>Rock Paper Scissors - Game</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="game-page">
@@ -19,14 +19,14 @@
         <!-- Game Mode Selection -->
         <div id="gameModeSelection">
             <h2>Select Game Mode</h2>
-            <div class="mode-buttons">
-                <button onclick="window.gameModule.selectGameMode('singleplayer')" class="mode-button">
-                    <i class="fas fa-user"></i> Single Player
-                </button>
-                <button onclick="window.gameModule.selectGameMode('multiplayer')" class="mode-button">
-                    <i class="fas fa-users"></i> Multiplayer
-                </button>
-            </div>
+            <button onclick="window.gameModule.selectGameMode('singleplayer')" class="mode-button">
+                <i class="fas fa-robot"></i>
+                Play vs Computer
+            </button>
+            <button onclick="window.gameModule.selectGameMode('multiplayer')" class="mode-button">
+                <i class="fas fa-users"></i>
+                Play vs Friend
+            </button>
         </div>
 
         <!-- Rounds Selection -->
@@ -42,7 +42,7 @@
         <!-- Multiplayer Room -->
         <div id="multiplayerRoom" style="display: none;">
             <div id="roomCreation">
-                <h2>Multiplayer Room</h2>
+                <h2>Multiplayer Game</h2>
                 <div class="room-options">
                     <button onclick="window.gameModule.createRoom()" class="mode-button">Create Room</button>
                     <div class="join-room">
@@ -52,12 +52,10 @@
                 </div>
             </div>
             <div id="waitingRoom" style="display: none;">
-                <h3>Waiting Room</h3>
-                <p>Room Code: <span id="displayRoomCode"></span></p>
-                <p>Share this code with your friend to join the game</p>
+                <h3>Room Code: <span id="displayRoomCode"></span></h3>
                 <div class="player-status">
                     <p>Players: <span id="playerCount">1/2</span></p>
-                    <div id="waitingMessage">Waiting for opponent...</div>
+                    <p id="waitingMessage">Waiting for opponent...</p>
                 </div>
             </div>
         </div>
@@ -66,16 +64,20 @@
         <div id="gameArea" style="display: none;">
             <div class="score-board">
                 <div class="score-item">
-                    <i class="fas fa-trophy"></i> Wins: <span id="wins">0</span>
+                    <i class="fas fa-trophy"></i>
+                    <span>Wins: <span id="wins">0</span></span>
                 </div>
                 <div class="score-item">
-                    <i class="fas fa-times"></i> Losses: <span id="losses">0</span>
+                    <i class="fas fa-times"></i>
+                    <span>Losses: <span id="losses">0</span></span>
                 </div>
                 <div class="score-item">
-                    <i class="fas fa-equals"></i> Draws: <span id="draws">0</span>
+                    <i class="fas fa-equals"></i>
+                    <span>Draws: <span id="draws">0</span></span>
                 </div>
                 <div class="score-item">
-                    <i class="fas fa-hourglass-half"></i> Rounds Left: <span id="roundsLeft">0</span>
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>Rounds Left: <span id="roundsLeft">0</span></span>
                 </div>
             </div>
 
@@ -100,16 +102,11 @@
         <!-- Final Result -->
         <div id="finalResult" class="final-result" style="display: none;">
             <h2>Game Over!</h2>
-            <div id="finalScore"></div>
             <div id="winnerAnnouncement" class="winner-announcement"></div>
-            <div class="game-buttons">
-                <button onclick="window.gameModule.resetGame()" class="play-again-button">
-                    <i class="fas fa-redo"></i> Play Again
-                </button>
-                <button onclick="window.gameModule.goToHomePage()" class="home-button">
-                    <i class="fas fa-home"></i> Back to Home
-                </button>
-            </div>
+            <div id="finalScore" class="final-score"></div>
+            <button onclick="window.gameModule.resetGame()" class="play-again-button">
+                <i class="fas fa-redo"></i> Play Again
+            </button>
         </div>
     </div>
 
