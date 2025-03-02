@@ -10,17 +10,15 @@ const database = getDatabase(app);
 const auth = getAuth(app);
 
 // DOM Elements
-const roundWinsElement = document.getElementById('roundWins');
-const gamesWonElement = document.getElementById('gamesWon');
+const totalWinsElement = document.getElementById('totalWins');
 const totalGamesElement = document.getElementById('totalGames');
-const winRateElement = document.getElementById('winRate');
+const totalLossesElement = document.getElementById('winRate'); // Reuse winRate element for losses
 const userWelcome = document.getElementById('userWelcome');
 
 console.log("index.js loaded - DOM Elements:", {
-    roundWinsElement,
-    gamesWonElement,
+    totalWinsElement,
     totalGamesElement,
-    winRateElement,
+    totalLossesElement,
     userWelcome
 });
 
@@ -30,42 +28,29 @@ function updateStatsUI(stats) {
     
     if (!stats) {
         console.log("No stats provided, using defaults");
-        if (roundWinsElement) roundWinsElement.textContent = '0';
-        if (gamesWonElement) gamesWonElement.textContent = '0';
+        if (totalWinsElement) totalWinsElement.textContent = '0';
         if (totalGamesElement) totalGamesElement.textContent = '0';
-        if (winRateElement) winRateElement.textContent = '0%';
+        if (totalLossesElement) totalLossesElement.textContent = '0';
         return;
     }
     
-    // Get values from stats
+    // Get values from stats, ensuring we use complete game stats
     const gamesPlayed = stats.gamesPlayed || 0;
-    const roundWins = stats.totalWins || 0;  // This is total round wins
-    const gamesWon = stats.gamesWon || 0;    // This is complete game wins
-    const winRate = stats.winRate || 0;      // Using the pre-calculated win rate
+    const totalWins = stats.totalWins || 0;
+    const totalLosses = stats.totalLosses || 0;
     
     console.log("Processing stats for display:", {
         gamesPlayed,
-        roundWins,
-        gamesWon,
-        winRate
+        totalWins,
+        totalLosses
     });
     
     // Update UI elements if they exist
-    if (roundWinsElement) roundWinsElement.textContent = String(roundWins);
-    if (gamesWonElement) gamesWonElement.textContent = String(gamesWon);
+    if (totalWinsElement) totalWinsElement.textContent = String(totalWins);
     if (totalGamesElement) totalGamesElement.textContent = String(gamesPlayed);
-    if (winRateElement) {
-        winRateElement.textContent = winRate + '%';
-        
-        // Add color classes based on win rate
-        winRateElement.className = 'stat-value';
-        if (winRate >= 60) {
-            winRateElement.classList.add('high-rate');
-        } else if (winRate >= 40) {
-            winRateElement.classList.add('medium-rate');
-        } else {
-            winRateElement.classList.add('low-rate');
-        }
+    if (totalLossesElement) {
+        totalLossesElement.textContent = String(totalLosses);
+        totalLossesElement.className = 'stat-value'; // Reset classes
     }
 }
 

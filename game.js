@@ -595,8 +595,7 @@ async function endGame() {
             const snapshot = await get(userStatsRef);
             const currentStats = snapshot.exists() ? snapshot.val() : {
                 gamesPlayed: 0,
-                totalWins: 0,  // This will store round wins
-                gamesWon: 0,   // This will store complete game wins
+                totalWins: 0,
                 totalLosses: 0,
                 totalDraws: 0,
                 winRate: 0
@@ -608,33 +607,31 @@ async function endGame() {
             const finalGameDraw = wins === losses;
             
             console.log("Final game outcome:", {
-                roundWins: wins,
-                roundLosses: losses,
-                roundDraws: draws,
+                wins,
+                losses,
+                draws,
                 finalGameWon,
                 finalGameLost,
                 finalGameDraw
             });
             
-            // Update stats based on both round wins and final game outcome
+            // Update stats based on final game outcome only
             const updatedStats = {
                 gamesPlayed: currentStats.gamesPlayed + 1,
-                totalWins: currentStats.totalWins + wins,  // Add all round wins
-                gamesWon: currentStats.gamesWon + (finalGameWon ? 1 : 0),  // Add game win if won overall
-                totalLosses: currentStats.totalLosses + losses,
-                totalDraws: currentStats.totalDraws + draws,
+                totalWins: currentStats.totalWins + (finalGameWon ? 1 : 0),
+                totalLosses: currentStats.totalLosses + (finalGameLost ? 1 : 0),
+                totalDraws: currentStats.totalDraws + (finalGameDraw ? 1 : 0),
                 lastUpdated: serverTimestamp()
             };
             
             // Calculate win rate based on complete games won
-            updatedStats.winRate = Math.round((updatedStats.gamesWon / updatedStats.gamesPlayed) * 100);
+            updatedStats.winRate = Math.round((updatedStats.totalWins / updatedStats.gamesPlayed) * 100);
             
-            console.log("Updating stats with game outcome:", {
+            console.log("Updating stats with final game outcome:", {
                 currentStats,
                 updatedStats,
                 change: {
-                    roundWins: updatedStats.totalWins - currentStats.totalWins,
-                    gamesWon: updatedStats.gamesWon - currentStats.gamesWon,
+                    wins: updatedStats.totalWins - currentStats.totalWins,
                     losses: updatedStats.totalLosses - currentStats.totalLosses,
                     draws: updatedStats.totalDraws - currentStats.totalDraws
                 }

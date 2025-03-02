@@ -49,7 +49,6 @@ function createLeaderboardEntry(rank, playerData, userId) {
     const stats = playerData.stats || {};
     const totalWins = typeof stats.totalWins === 'number' ? stats.totalWins : 0;
     const gamesPlayed = typeof stats.gamesPlayed === 'number' ? stats.gamesPlayed : 0;
-    const winRate = gamesPlayed > 0 ? Math.round((totalWins / gamesPlayed) * 100) : 0;
 
     entry.innerHTML = `
         <div class="rank ${rank <= 3 ? 'top-' + rank : ''}">${rankDisplay}</div>
@@ -64,10 +63,6 @@ function createLeaderboardEntry(rank, playerData, userId) {
             <div class="stat-item">
                 <span class="stat-label">Games:</span>
                 <span class="stat-value">${gamesPlayed}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Win Rate:</span>
-                <span class="stat-value">${winRate}%</span>
             </div>
         </div>
     `;
