@@ -10,9 +10,9 @@
 </head>
 <body class="game-page">
     <div class="game-container">
-        <a href="index.html" class="back-button">
-            <i class="fas fa-arrow-left"></i> Back to Menu
-        </a>
+        <button onclick="window.history.back()" class="back-button">
+            <i class="fas fa-chevron-left"></i> Back
+        </button>
         
         <h1>Rock Paper Scissors</h1>
         
@@ -63,17 +63,17 @@
                 </div>
             </div>
             <div id="waitingRoom" style="display: none;">
-                <h3>Room Code: <span id="displayRoomCode"></span></h3>
-                <div class="share-code">
-                    <p>Share this code with your friend to join the game</p>
-                    <button onclick="window.gameModule.copyRoomCode()" class="copy-button">
-                        <i class="fas fa-copy"></i> Copy Code
-                    </button>
+                <h2>Game Room</h2>
+                <h3>Rock Paper Scissors</h3>
+                <div id="displayRoomCode"></div>
+                <div id="waitingMessage">
+                    <i class="fas fa-spinner"></i>
+                    <span>Waiting for opponent...</span>
                 </div>
-                <div class="player-status">
-                    <p><i class="fas fa-users"></i> Players: <span id="playerCount">1/2</span></p>
-                    <p id="waitingMessage"><i class="fas fa-spinner fa-spin"></i> Waiting for opponent...</p>
-                </div>
+                <div id="playerCount">1/2</div>
+                <button class="copy-button" onclick="window.gameModule.copyRoomCode()">
+                    <i class="fas fa-copy"></i> Copy Room Code
+                </button>
             </div>
         </div>
 

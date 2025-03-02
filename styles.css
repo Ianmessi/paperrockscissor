@@ -413,6 +413,28 @@ body.game-page::before {
     top: 20px;
     left: 20px;
     z-index: 1000;
+    background: rgba(13, 13, 18, 0.8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: rgba(13, 13, 18, 0.9);
+    transform: translateX(-3px);
+}
+
+.back-button i {
+    font-size: 1.2em;
 }
 
 .game-tagline {
@@ -1740,4 +1762,95 @@ body.about-page {
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+/* Waiting Room Styles */
+#waitingRoom {
+    text-align: center;
+    padding: 20px;
+}
+
+#waitingRoom h2 {
+    font-size: 2.8em;
+    margin-bottom: 30px;
+    color: white;
+}
+
+#waitingRoom h3 {
+    font-size: 2em;
+    margin: 20px 0;
+    color: white;
+    opacity: 0.9;
+}
+
+#displayRoomCode {
+    color: #2ecc71;
+    font-size: 2.5em;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(46, 204, 113, 0.1);
+    border-radius: 10px;
+    display: inline-block;
+}
+
+#waitingMessage {
+    color: #2ecc71;
+    font-size: 1.4em;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#waitingMessage i {
+    color: #95a5a6;
+    animation: spin 1s linear infinite;
+}
+
+#playerCount {
+    font-size: 1.2em;
+    color: white;
+    margin: 15px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #waitingRoom h2 {
+        font-size: 2.2em;
+    }
+    
+    #waitingRoom h3 {
+        font-size: 1.6em;
+    }
+    
+    #displayRoomCode {
+        font-size: 2em;
+    }
+    
+    #waitingMessage {
+        font-size: 1.2em;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    #waitingRoom h2 {
+        font-size: 1.8em;
+    }
+    
+    #waitingRoom h3 {
+        font-size: 1.4em;
+    }
+    
+    #displayRoomCode {
+        font-size: 1.6em;
+        letter-spacing: 2px;
+    }
+    
+    #waitingMessage {
+        font-size: 1.1em;
+    }
 }

@@ -584,7 +584,7 @@ async function endGame() {
     if (playAgainButton) playAgainButton.disabled = true;
     if (homeButton) homeButton.disabled = true;
     
-    // Update user stats in database if authenticated
+    // Update user stats in database
     if (currentUser) {
         console.log("Updating stats for user:", currentUser.uid);
         const userStatsRef = ref(database, 'users/' + currentUser.uid + '/stats');
@@ -604,7 +604,8 @@ async function endGame() {
                 gamesWon: currentStats.gamesWon + (wins > losses ? 1 : 0),
                 totalWins: currentStats.totalWins + wins,
                 totalLosses: currentStats.totalLosses + losses,
-                totalDraws: currentStats.totalDraws + draws
+                totalDraws: currentStats.totalDraws + draws,
+                winRate: Math.round(((currentStats.gamesWon + (wins > losses ? 1 : 0)) / (currentStats.gamesPlayed + 1)) * 100)
             };
             
             await set(userStatsRef, updatedStats);
@@ -651,24 +652,27 @@ function resetGame() {
     draws = 0;
     roundsPlayed = 0;
     
-    // If in multiplayer mode, clean up the room
-    if (gameMode === 'multiplayer' && currentRoom) {
-        console.log("Cleaning up multiplayer room:", currentRoom);
+    if (gameMode === 'singleplayer') {
+        // For singleplayer, go back to rounds selection
+        document.getElementById('roundsSelection').style.display = 'block';
+    } else if (gameMode === 'multiplayer' && currentRoom) {
+        // For multiplayer, restart game with same opponent
+        console.log("Restarting multiplayer game in room:", currentRoom);
         
-        // Remove listeners by setting them to null
-        // This is a simple way to "detach" listeners
+        // Reset room state for new game
         const gameStateRef = ref(database, 'rooms/' + currentRoom + '/gameState');
         const movesRef = ref(database, 'rooms/' + currentRoom + '/moves');
         
-        // Reset room state
-        currentRoom = null;
-        isPlayer1 = false;
-        opponentName = '';
+        // Reset game state and moves
+        set(gameStateRef, 'playing');
+        set(movesRef, { round: 1 });
+        
+        // Show game area
+        document.getElementById('gameArea').style.display = 'block';
+        
+        // Setup listeners for new game
+        setupMultiplayerListeners();
     }
-    
-    // Go back to game mode selection
-    gameMode = '';
-    document.getElementById('gameModeSelection').style.display = 'block';
 }
 
 // Go back to home page
