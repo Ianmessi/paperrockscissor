@@ -73,7 +73,7 @@ onAuthStateChanged(auth, (user) => {
             updateStatsUI(null);
         });
     } else {
-        welcomeMessage.textContent = 'Welcome! Please sign in to track your stats.';
-        updateStatsUI(null);
+        // Redirect to login page if not authenticated
+        window.location.href = 'login.html';
     }
 });

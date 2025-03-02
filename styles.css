@@ -192,7 +192,7 @@ body.home-page {
 
     .stat-item {
         width: 100%;
-        justify-content: center;
+    justify-content: center;
     }
 
     .stat-value {
@@ -782,7 +782,7 @@ body.about-page {
     font-size: 1.5em;
 }
 
-.review-form select, 
+.review-form select,
 .review-form textarea {
     width: 100%;
     padding: 12px;
@@ -1270,7 +1270,7 @@ body.about-page {
     background: none;
     border: none;
     color: #e74c3c;
-    font-size: 14px;
+        font-size: 14px;
     cursor: pointer;
     padding: 0;
     display: flex;
@@ -1602,7 +1602,7 @@ body.about-page {
     justify-content: space-around;
     align-items: center;
     margin: 20px 0;
-    padding: 10px;
+        padding: 10px;
     border-radius: 8px;
 }
 

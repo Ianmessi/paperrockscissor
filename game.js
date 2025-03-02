@@ -87,18 +87,18 @@ async function createRoom() {
     const roomRef = ref(database, 'rooms/' + roomCode);
     try {
         await set(roomRef, {
-            player1: {
-                id: currentUser.uid,
+        player1: {
+            id: currentUser.uid,
                 name: currentUser.displayName || currentUser.email.split('@')[0],
                 ready: true
-            },
-            gameState: 'waiting',
+        },
+        gameState: 'waiting',
             created: Date.now()
-        });
+    });
 
-        document.getElementById('roomCreation').style.display = 'none';
-        document.getElementById('waitingRoom').style.display = 'block';
-        document.getElementById('displayRoomCode').textContent = roomCode;
+    document.getElementById('roomCreation').style.display = 'none';
+    document.getElementById('waitingRoom').style.display = 'block';
+    document.getElementById('displayRoomCode').textContent = roomCode;
 
         // Listen for player 2 joining
         const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
@@ -133,8 +133,8 @@ async function joinRoom() {
     
     try {
         console.log("Attempting to join room:", roomCode);
-        
-        // Check if room exists
+
+    // Check if room exists
         const roomRef = ref(database, 'rooms/' + roomCode);
         const snapshot = await get(roomRef);
 
@@ -268,11 +268,11 @@ function setupMultiplayerListeners() {
         }
     });
     
-    // Listen for opponent's moves
+        // Listen for opponent's moves
     const movesRef = ref(database, 'rooms/' + currentRoom + '/moves');
     onValue(movesRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const moves = snapshot.val();
+            if (snapshot.exists()) {
+                const moves = snapshot.val();
             console.log("Moves updated:", moves);
             
             // Only process if both players have made their moves for the current round
@@ -287,9 +287,9 @@ function setupMultiplayerListeners() {
                 
                 // Process the round
                 processMultiplayerRound(moves);
+                }
             }
-        }
-    });
+        });
     
     // Initialize moves for first round
     set(ref(database, 'rooms/' + currentRoom + '/moves'), { round: 1 });
@@ -323,9 +323,9 @@ function processMultiplayerRound(moves) {
         wins++;
     } else {
         result = 'YOU LOSE';
-        losses++;
+            losses++;
     }
-    
+
     roundsPlayed++;
     
     // Update UI
@@ -475,7 +475,7 @@ function playGame(playerChoice) {
         result = 'YOU LOSE';
         losses++;
     }
-    
+
     roundsPlayed++;
     
     // Update UI
@@ -506,8 +506,8 @@ async function endGame() {
         resultClass = 'lose';
     } else {
         resultClass = 'draw';
-    }
-    
+}
+
     const finalScore = document.getElementById('finalScore');
     finalScore.innerHTML = `
         <div class="final-score-container ${resultClass}">
@@ -525,18 +525,18 @@ async function endGame() {
     
     const winnerAnnouncement = document.getElementById('winnerAnnouncement');
     let gameResult = '';
-    
-    if (wins > losses) {
+
+                if (wins > losses) {
         winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> YOU WIN!';
-        winnerAnnouncement.className = 'winner-announcement win';
+                    winnerAnnouncement.className = 'winner-announcement win';
         gameResult = 'win';
-    } else if (losses > wins) {
+                } else if (losses > wins) {
         winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> YOU LOSE!';
-        winnerAnnouncement.className = 'winner-announcement lose';
+                    winnerAnnouncement.className = 'winner-announcement lose';
         gameResult = 'loss';
-    } else {
+                } else {
         winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> DRAW!';
-        winnerAnnouncement.className = 'winner-announcement draw';
+                    winnerAnnouncement.className = 'winner-announcement draw';
         gameResult = 'draw';
     }
     
