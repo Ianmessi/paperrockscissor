@@ -601,27 +601,29 @@ async function endGame() {
                 winRate: 0
             };
             
-            // Calculate new stats based on game outcome, not round wins
-            const newGamesPlayed = currentStats.gamesPlayed + 1;
+            // Determine game outcome based on final round tally
             const gameWon = wins > losses;
             const gameLost = losses > wins;
             const gameDraw = wins === losses;
             
-            const newTotalWins = currentStats.totalWins + (gameWon ? 1 : 0);
-            const newTotalLosses = currentStats.totalLosses + (gameLost ? 1 : 0);
-            const newTotalDraws = currentStats.totalDraws + (gameDraw ? 1 : 0);
-            
-            // Calculate win rate based on games won vs games played
-            const newWinRate = Math.round((newTotalWins / newGamesPlayed) * 100);
-            
+            // Update stats based on final game outcome only
             const updatedStats = {
-                gamesPlayed: newGamesPlayed,
-                totalWins: newTotalWins,
-                totalLosses: newTotalLosses,
-                totalDraws: newTotalDraws,
-                winRate: newWinRate,
+                gamesPlayed: currentStats.gamesPlayed + 1,
+                totalWins: currentStats.totalWins + (gameWon ? 1 : 0),
+                totalLosses: currentStats.totalLosses + (gameLost ? 1 : 0),
+                totalDraws: currentStats.totalDraws + (gameDraw ? 1 : 0),
                 lastUpdated: serverTimestamp()
             };
+            
+            // Calculate win rate based on complete games won
+            updatedStats.winRate = Math.round((updatedStats.totalWins / updatedStats.gamesPlayed) * 100);
+            
+            console.log("Updating stats with game outcome:", {
+                gameWon,
+                gameLost,
+                gameDraw,
+                updatedStats
+            });
             
             await set(userStatsRef, updatedStats);
             console.log("Stats updated successfully:", updatedStats);

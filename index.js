@@ -24,38 +24,34 @@ console.log("index.js loaded - DOM Elements:", {
 
 // Function to update the UI with stats
 function updateStatsUI(stats) {
+    console.log("Updating UI with stats:", stats);
+    
     if (!stats) {
         console.log("No stats provided, using defaults");
-        totalWinsElement.textContent = '0';
-        totalGamesElement.textContent = '0';
-        winRateElement.textContent = '0%';
+        if (totalWinsElement) totalWinsElement.textContent = '0';
+        if (totalGamesElement) totalGamesElement.textContent = '0';
+        if (winRateElement) winRateElement.textContent = '0%';
         return;
     }
     
-    console.log("Raw stats from Firebase:", stats);
+    // Get values from stats, ensuring we use complete game stats
+    const gamesPlayed = stats.gamesPlayed || 0;
+    const totalWins = stats.totalWins || 0;  // This is now complete game wins
+    const winRate = stats.winRate || 0;  // Using the pre-calculated win rate
     
-    // Get values from stats, ensuring we handle both direct values and nested objects
-    const gamesPlayed = typeof stats.gamesPlayed === 'number' ? stats.gamesPlayed : 0;
-    const totalWins = typeof stats.totalWins === 'number' ? stats.totalWins : 0;
-    
-    // Calculate win rate
-    const winRate = gamesPlayed > 0 
-        ? Math.round((totalWins / gamesPlayed) * 100) 
-        : 0;
-    
-    console.log("Processing stats:", {
+    console.log("Processing stats for display:", {
         gamesPlayed,
         totalWins,
-        calculatedWinRate: winRate + '%'
+        winRate
     });
     
-    // Update UI with strict type checking
+    // Update UI elements if they exist
     if (totalWinsElement) totalWinsElement.textContent = String(totalWins);
     if (totalGamesElement) totalGamesElement.textContent = String(gamesPlayed);
-    if (winRateElement) winRateElement.textContent = winRate + '%';
-    
-    // Add color classes based on win rate
     if (winRateElement) {
+        winRateElement.textContent = winRate + '%';
+        
+        // Add color classes based on win rate
         winRateElement.className = 'stat-value';
         if (winRate >= 60) {
             winRateElement.classList.add('high-rate');
@@ -65,8 +61,6 @@ function updateStatsUI(stats) {
             winRateElement.classList.add('low-rate');
         }
     }
-    
-    console.log("UI updated with stats");
 }
 
 // Update stats when user is authenticated
@@ -75,7 +69,9 @@ onAuthStateChanged(auth, (user) => {
     
     if (user) {
         console.log('User is signed in:', user.uid);
-        userWelcome.textContent = `Welcome, ${user.displayName || user.email}!`;
+        if (userWelcome) {
+            userWelcome.textContent = `Welcome, ${user.displayName || user.email}!`;
+        }
         
         // Set up real-time listener for user stats
         const userStatsRef = ref(database, 'users/' + user.uid + '/stats');
