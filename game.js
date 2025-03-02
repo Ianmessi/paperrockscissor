@@ -11,25 +11,12 @@ try {
     auth = getAuth(app);
     database = getDatabase(app);
     console.log("Firebase initialized successfully");
-    
-    // Test database connection
-    const testRef = ref(database, 'test');
-    set(testRef, {
-        timestamp: Date.now(),
-        message: 'Database connection test'
-    })
-    .then(() => {
-        console.log("Database connection successful");
-    })
-    .catch((error) => {
-        console.error("Database connection error:", error);
-        alert("Error connecting to the database. Please check your Firebase configuration.");
-    });
 } catch (error) {
     console.error("Firebase initialization error:", error);
-    alert("Error initializing Firebase. Please check your configuration.");
+    showError('Error initializing Firebase. Please try refreshing the page.');
 }
 
+// Variables for game state
 let wins = 0, losses = 0, draws = 0;
 let totalRounds = 0;
 let roundsPlayed = 0;
@@ -165,60 +152,69 @@ async function joinRoom() {
         return;
     }
     
-    console.log("Current user:", currentUser);
+    const roomCode = document.getElementById('roomCode').value.toUpperCase();
+    if (!roomCode) {
+        showError('Please enter a room code');
+        return;
+    }
     
-    if (!currentUser.displayName) {
-        console.warn("User missing displayName:", currentUser.uid);
-        // Instead of requiring displayName, use email or a default name
-        const userName = currentUser.email ? currentUser.email.split('@')[0] : 'Player 2';
-        console.log("Using alternative name:", userName);
-        
-        const roomCode = document.getElementById('roomCode').value.toUpperCase();
-        if (!roomCode) {
-            console.error("No room code entered");
-            showError('Please enter a room code');
-            return;
-        }
-        
+    try {
         console.log("Attempting to join room:", roomCode);
         
-        currentRoom = roomCode;
-        isPlayer1 = false;
-
         // Check if room exists
         const roomRef = ref(database, 'rooms/' + roomCode);
         const snapshot = await get(roomRef);
 
         if (!snapshot.exists()) {
-            console.error("Room not found");
-            throw new Error('Room not found');
-        } else if (!snapshot.val().player1) {
-            console.error("Room is invalid");
-            throw new Error('Room is invalid');
-        } else if (snapshot.val().player2) {
-            console.error("Room is full");
-            throw new Error('Room is full');
+            showError('Room not found. Please check the code and try again.');
+            return;
         }
 
-        opponentName = snapshot.val().player1.name;
-        console.log("Found room, opponent:", opponentName);
-        
+        const roomData = snapshot.val();
+        if (!roomData.player1) {
+            showError('Invalid room. Please try a different code.');
+            return;
+        }
+
+        if (roomData.player2) {
+            showError('Room is full. Please try a different code.');
+            return;
+        }
+
+        if (roomData.player1.id === currentUser.uid) {
+            showError('You cannot join your own room.');
+            return;
+        }
+
+        currentRoom = roomCode;
+        isPlayer1 = false;
+        opponentName = roomData.player1.name;
+
+        // Join the room
         await update(roomRef, {
             player2: {
                 id: currentUser.uid,
-                name: userName,
-                ready: false
+                name: currentUser.displayName || currentUser.email.split('@')[0],
+                ready: true
             },
             gameState: 'starting'
         });
 
+        console.log("Successfully joined room");
+        
+        // Update UI
         document.getElementById('roomCreation').style.display = 'none';
         document.getElementById('waitingRoom').style.display = 'block';
         document.getElementById('displayRoomCode').textContent = roomCode;
         document.getElementById('playerCount').textContent = '2/2';
         document.getElementById('waitingMessage').textContent = 'Joined room! Starting game...';
         
+        // Start the game after a short delay
         setTimeout(() => startGame(5), 1500);
+
+    } catch (error) {
+        console.error("Error joining room:", error);
+        showError('Failed to join room. Please try again.');
     }
 }
 
@@ -357,7 +353,7 @@ function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
     
     resultDiv.innerHTML = `
         <div class="round-result ${resultClass}">
-            <p>Round ${roundNumber}</p>
+            <p class="round-number">Round ${roundNumber}</p>
             <div class="choices-display">
                 <div class="choice">
                     <p>Your choice:</p>
@@ -370,7 +366,7 @@ function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
                     <p>${opponentChoice}</p>
                 </div>
             </div>
-            <p class="result-text">${result}</p>
+            <p class="result-text ${resultClass}">${result}</p>
         </div>
     ` + resultDiv.innerHTML;
 }
@@ -491,16 +487,27 @@ async function endGame() {
     document.getElementById('gameArea').style.display = 'none';
     document.getElementById('finalResult').style.display = 'block';
     
+    let resultClass = '';
+    if (wins > losses) {
+        resultClass = 'win';
+    } else if (losses > wins) {
+        resultClass = 'lose';
+    } else {
+        resultClass = 'draw';
+    }
+    
     const finalScore = document.getElementById('finalScore');
     finalScore.innerHTML = `
-        <div class="final-score-item">
-            <i class="fas fa-trophy"></i> Wins: ${wins}
-        </div>
-        <div class="final-score-item">
-            <i class="fas fa-times"></i> Losses: ${losses}
-        </div>
-        <div class="final-score-item">
-            <i class="fas fa-equals"></i> Draws: ${draws}
+        <div class="final-score-container ${resultClass}">
+            <div class="final-score-item">
+                <i class="fas fa-trophy"></i> Wins: ${wins}
+            </div>
+            <div class="final-score-item">
+                <i class="fas fa-times"></i> Losses: ${losses}
+            </div>
+            <div class="final-score-item">
+                <i class="fas fa-equals"></i> Draws: ${draws}
+            </div>
         </div>
     `;
     

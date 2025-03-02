@@ -1533,28 +1533,26 @@ body.about-page {
 }
 
 .round-result {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
     padding: 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    animation: fadeIn 0.5s ease-out;
+    margin: 15px 0;
     transition: all 0.3s ease;
 }
 
 .round-result.win {
-    background: rgba(52, 199, 89, 0.2);
-    border: 2px solid #34c759;
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid rgba(76, 175, 80, 0.5);
 }
 
 .round-result.lose {
-    background: rgba(255, 59, 48, 0.2);
-    border: 2px solid #ff3b30;
+    background: rgba(244, 67, 54, 0.2);
+    border: 2px solid rgba(244, 67, 54, 0.5);
 }
 
 .round-result.draw {
-    background: rgba(0, 122, 255, 0.2);
-    border: 2px solid #007aff;
+    background: rgba(33, 150, 243, 0.2);
+    border: 2px solid rgba(33, 150, 243, 0.5);
 }
 
 .round-result h3 {
@@ -1584,143 +1582,79 @@ body.about-page {
 }
 
 .result-text {
-    font-size: 1.2rem;
+    font-size: 1.5em;
     font-weight: bold;
-    margin-top: 10px;
-}
-
-.round-result.win .result-text {
-    color: #34c759;
-}
-
-.round-result.lose .result-text {
-    color: #ff3b30;
-}
-
-.round-result.draw .result-text {
-    color: #007aff;
-}
-
-.results {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 10px;
-    margin-bottom: 20px;
-}
-
-.results::-webkit-scrollbar {
-    width: 8px;
-}
-
-.results::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-.results::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-}
-
-.results::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-/* Final Result Styles */
-.final-result {
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 20px;
-    padding: 30px;
     text-align: center;
-    color: white;
-    max-width: 800px;
-    margin: 0 auto;
-    max-height: 80vh;
-    overflow-y: auto;
+    margin-top: 15px;
+    text-transform: uppercase;
 }
 
-.final-result::-webkit-scrollbar {
-    width: 8px;
+.result-text.win {
+    color: #4CAF50;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
 
-.final-result::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
+.result-text.lose {
+    color: #F44336;
+    text-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
 }
 
-.final-result::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
+.result-text.draw {
+    color: #2196F3;
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
 }
 
-.final-result::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+.final-score-container {
+    padding: 20px;
+    border-radius: 15px;
+    margin: 20px 0;
+    transition: all 0.3s ease;
 }
 
-.final-rounds-summary {
-    margin-top: 30px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding-top: 20px;
+.final-score-container.win {
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid rgba(76, 175, 80, 0.5);
 }
 
-.final-rounds-summary h3 {
-    font-size: 1.4rem;
-    margin-bottom: 20px;
-    color: white;
+.final-score-container.lose {
+    background: rgba(244, 67, 54, 0.2);
+    border: 2px solid rgba(244, 67, 54, 0.5);
+}
+
+.final-score-container.draw {
+    background: rgba(33, 150, 243, 0.2);
+    border: 2px solid rgba(33, 150, 243, 0.5);
 }
 
 .winner-announcement {
-    font-size: 2.5em;
+    font-size: 2em;
     font-weight: bold;
     text-align: center;
-    margin: 30px 0;
+    margin: 20px 0;
     padding: 20px;
     border-radius: 15px;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    position: sticky;
-    top: 20px;
-    z-index: 10;
-    animation: bounceIn 1s ease-out 0.8s both;
-    background-size: 200% 200%;
-    animation: bounceIn 1s ease-out 0.8s both, gradientBg 5s ease infinite;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+    animation: bounceIn 0.5s ease;
 }
 
 .winner-announcement.win {
-    background: rgba(46, 204, 113, 0.2);
-    color: #2ecc71;
-    text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.3);
-}
-
-.winner-announcement.win::after {
-    content: ' 🥇';
-    font-size: 1.2em;
+    color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid rgba(76, 175, 80, 0.5);
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
 
 .winner-announcement.lose {
-    background: rgba(231, 76, 60, 0.2);
-    color: #e74c3c;
-    text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
-    box-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
-}
-
-.winner-announcement.lose::after {
-    content: ' 😔';
-    font-size: 1.2em;
+    color: #F44336;
+    background: rgba(244, 67, 54, 0.2);
+    border: 2px solid rgba(244, 67, 54, 0.5);
+    text-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
 }
 
 .winner-announcement.draw {
-    background: rgba(52, 152, 219, 0.2);
-    color: #3498db;
-    text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
-    box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
-}
-
-.winner-announcement.draw::after {
-    content: ' 🤝';
-    font-size: 1.2em;
+    color: #2196F3;
+    background: rgba(33, 150, 243, 0.2);
+    border: 2px solid rgba(33, 150, 243, 0.5);
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
 }
 
 .play-again-button {
