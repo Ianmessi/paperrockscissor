@@ -76,26 +76,21 @@ async function createRoom() {
     
     console.log("Current user:", currentUser);
     
-    if (!currentUser.displayName) {
-        console.warn("User missing displayName:", currentUser.uid);
-        // Instead of requiring displayName, use email or a default name
-        const userName = currentUser.email ? currentUser.email.split('@')[0] : 'Player 1';
-        console.log("Using alternative name:", userName);
-        
-        // Create room with the room code
-        const roomCode = generateRoomCode();
-        currentRoom = roomCode;
-        isPlayer1 = true;
+    // Create room with the room code
+    const roomCode = generateRoomCode();
+    currentRoom = roomCode;
+    isPlayer1 = true;
 
-        console.log("Creating room with code:", roomCode);
+    console.log("Creating room with code:", roomCode);
 
-        // Create room in Firebase
-        const roomRef = ref(database, 'rooms/' + roomCode);
+    // Create room in Firebase
+    const roomRef = ref(database, 'rooms/' + roomCode);
+    try {
         await set(roomRef, {
             player1: {
                 id: currentUser.uid,
-                name: userName,
-                ready: false
+                name: currentUser.displayName || currentUser.email.split('@')[0],
+                ready: true
             },
             gameState: 'waiting',
             created: Date.now()
@@ -117,32 +112,10 @@ async function createRoom() {
                 setTimeout(() => startGame(5), 1500);
             }
         });
-        
-        return;
+    } catch (error) {
+        console.error("Error creating room:", error);
+        showError('Failed to create room. Please try again.');
     }
-    
-    const roomCode = generateRoomCode();
-    currentRoom = roomCode;
-    isPlayer1 = true;
-
-    console.log("Creating room with code:", roomCode);
-    console.log("Current user:", currentUser.displayName);
-
-    // Create room in Firebase
-    const roomRef = ref(database, 'rooms/' + roomCode);
-    await set(roomRef, {
-        player1: {
-            id: currentUser.uid,
-            name: currentUser.displayName || 'Player 1',
-            ready: false
-        },
-        gameState: 'waiting',
-        created: Date.now()
-    });
-
-    document.getElementById('roomCreation').style.display = 'none';
-    document.getElementById('waitingRoom').style.display = 'block';
-    document.getElementById('displayRoomCode').textContent = roomCode;
 }
 
 async function joinRoom() {
@@ -178,8 +151,14 @@ async function joinRoom() {
             return;
         }
 
+        // Check if the user is already player1 in this room
         if (roomData.player1.id === currentUser.uid) {
-            showError('You cannot join your own room.');
+            // User is already player1, just show the waiting room
+            currentRoom = roomCode;
+            isPlayer1 = true;
+            document.getElementById('roomCreation').style.display = 'none';
+            document.getElementById('waitingRoom').style.display = 'block';
+            document.getElementById('displayRoomCode').textContent = roomCode;
             return;
         }
 
