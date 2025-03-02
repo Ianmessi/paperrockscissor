@@ -19,14 +19,16 @@
         <!-- Game Mode Selection -->
         <div id="gameModeSelection">
             <h2>Select Game Mode</h2>
-            <button onclick="window.gameModule.selectGameMode('singleplayer')" class="mode-button">
-                <i class="fas fa-robot"></i>
-                Play vs Computer
-            </button>
-            <button onclick="window.gameModule.selectGameMode('multiplayer')" class="mode-button">
-                <i class="fas fa-users"></i>
-                Play vs Friend
-            </button>
+            <div class="mode-buttons">
+                <button onclick="window.gameModule.selectGameMode('singleplayer')" class="mode-button">
+                    <i class="fas fa-robot"></i>
+                    <span>Play vs Computer</span>
+                </button>
+                <button onclick="window.gameModule.selectGameMode('multiplayer')" class="mode-button">
+                    <i class="fas fa-users"></i>
+                    <span>Play vs Friend</span>
+                </button>
+            </div>
         </div>
 
         <!-- Rounds Selection -->

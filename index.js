@@ -1,23 +1,25 @@
 // Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import firebaseConfig from './firebase-config.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { firebaseConfig } from './firebase-config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const database = getDatabase(app);
+const auth = getAuth(app);
 
 // DOM Elements
 const totalWinsElement = document.getElementById('totalWins');
 const totalGamesElement = document.getElementById('totalGames');
 const winRateElement = document.getElementById('winRate');
+const welcomeMessage = document.getElementById('welcomeMessage');
 
 console.log("index.js loaded - DOM Elements:", {
     totalWinsElement,
     totalGamesElement,
-    winRateElement
+    winRateElement,
+    welcomeMessage
 });
 
 // Function to update the UI with stats
@@ -52,6 +54,16 @@ function updateStatsUI(stats) {
     totalGamesElement.textContent = gamesPlayed;
     winRateElement.textContent = winRate + '%';
     
+    // Add color classes based on win rate
+    winRateElement.className = 'stat-value';
+    if (winRate >= 60) {
+        winRateElement.classList.add('high-rate');
+    } else if (winRate >= 40) {
+        winRateElement.classList.add('medium-rate');
+    } else {
+        winRateElement.classList.add('low-rate');
+    }
+    
     console.log("UI updated with stats");
 }
 
@@ -60,61 +72,49 @@ onAuthStateChanged(auth, (user) => {
     console.log("Auth state changed:", user ? `User logged in: ${user.email}` : "User logged out");
     
     if (user) {
-        try {
-            console.log("Setting up real-time listener for user stats:", user.uid);
-            
-            // Get user stats from Realtime Database with a real-time listener
-            const userStatsRef = ref(database, 'users/' + user.uid + '/stats');
-            
-            // First get the current value
-            get(userStatsRef).then((snapshot) => {
-                console.log("Initial stats snapshot exists:", snapshot.exists());
-                
-                if (snapshot.exists()) {
-                    const stats = snapshot.val();
-                    console.log("Initial stats from database:", stats);
-                    updateStatsUI(stats);
-                } else {
-                    console.log("No initial stats found, initializing with zeros");
-                    updateStatsUI(null);
-                }
-            }).catch(error => {
-                console.error("Error fetching initial user stats:", error);
-                updateStatsUI(null);
-            });
-            
-            // Then set up a listener for real-time updates
-            onValue(userStatsRef, (snapshot) => {
-                console.log("Real-time stats update received");
-                
-                if (snapshot.exists()) {
-                    const stats = snapshot.val();
-                    console.log("Updated stats from database:", stats);
-                    updateStatsUI(stats);
-                } else {
-                    console.log("No stats found in real-time update");
-                    updateStatsUI(null);
-                }
-            }, (error) => {
-                console.error("Error in real-time stats listener:", error);
-            });
-            
-        } catch (error) {
-            console.error("Error setting up stats listeners:", error);
-            updateStatsUI(null);
-        }
+        console.log('User is signed in:', user.uid);
+        welcomeMessage.textContent = `Welcome, ${user.displayName || user.email}!`;
+        loadUserStats(user.uid);
     } else {
-        // User is not logged in, show default values
-        console.log("User not logged in, showing default values");
-        updateStatsUI(null);
+        console.log('No user signed in');
+        window.location.href = 'login.html';
     }
 });
 
-// Add a welcome message with the user's name
-onAuthStateChanged(auth, (user) => {
-    const welcomeElement = document.getElementById('userWelcome');
-    if (welcomeElement && user) {
-        welcomeElement.textContent = `Welcome, ${user.displayName || user.email.split('@')[0]}!`;
-        console.log("Welcome message updated for user:", user.displayName || user.email.split('@')[0]);
-    }
-});
+function loadUserStats(userId) {
+    console.log('Loading stats for user:', userId);
+    const userStatsRef = ref(database, 'users/' + userId + '/stats');
+    
+    onValue(userStatsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const stats = snapshot.val();
+            console.log('User stats:', stats);
+            
+            // Update UI with stats
+            totalGamesElement.textContent = stats.gamesPlayed || 0;
+            totalWinsElement.textContent = stats.gamesWon || 0;
+            
+            // Calculate win rate based on games won vs games played
+            const winRate = stats.gamesPlayed > 0 
+                ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) 
+                : 0;
+            
+            winRateElement.textContent = winRate + '%';
+            
+            // Add color classes based on win rate
+            winRateElement.className = 'stat-value';
+            if (winRate >= 60) {
+                winRateElement.classList.add('high-rate');
+            } else if (winRate >= 40) {
+                winRateElement.classList.add('medium-rate');
+            } else {
+                winRateElement.classList.add('low-rate');
+            }
+        } else {
+            console.log('No stats found for user');
+            totalGamesElement.textContent = '0';
+            totalWinsElement.textContent = '0';
+            winRateElement.textContent = '0%';
+        }
+    });
+}

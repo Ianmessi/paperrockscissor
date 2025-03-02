@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, set, get, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -76,9 +76,11 @@ function selectGameMode(mode) {
     }
 }
 
-function createRoom() {
-    console.log("Create room function called");
-    
+function generateRoomCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+async function createRoom() {
     if (!currentUser) {
         console.error("No authenticated user found");
         showError('You must be logged in to create a room');
@@ -94,7 +96,7 @@ function createRoom() {
         console.log("Using alternative name:", userName);
         
         // Create room with the room code
-        const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const roomCode = generateRoomCode();
         currentRoom = roomCode;
         isPlayer1 = true;
 
@@ -102,46 +104,37 @@ function createRoom() {
 
         // Create room in Firebase
         const roomRef = ref(database, 'rooms/' + roomCode);
-        set(roomRef, {
+        await set(roomRef, {
             player1: {
                 id: currentUser.uid,
-                username: userName,
+                name: userName,
                 ready: false
             },
             gameState: 'waiting',
-            rounds: 5,
-            currentRound: 0,
-            createdAt: serverTimestamp()
-        })
-        .then(() => {
-            console.log("Room created successfully:", roomCode);
-            
-            // Listen for opponent joining
-            const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
-            onValue(player2Ref, (snapshot) => {
-                console.log("Player2 snapshot update:", snapshot.exists());
-                if (snapshot.exists()) {
-                    opponentName = snapshot.val().username;
-                    console.log("Opponent joined:", opponentName);
-                    document.getElementById('playerCount').textContent = '2/2';
-                    document.getElementById('waitingMessage').textContent = 'Game starting...';
-                    setTimeout(() => startGame(5), 1500);
-                }
-            });
+            created: Date.now()
+        });
 
-            document.getElementById('roomCreation').style.display = 'none';
-            document.getElementById('waitingRoom').style.display = 'block';
-            document.getElementById('displayRoomCode').textContent = roomCode;
-        })
-        .catch((error) => {
-            console.error("Error creating room:", error);
-            showError('Failed to create room: ' + error.message);
+        document.getElementById('roomCreation').style.display = 'none';
+        document.getElementById('waitingRoom').style.display = 'block';
+        document.getElementById('displayRoomCode').textContent = roomCode;
+
+        // Listen for player 2 joining
+        const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
+        onValue(player2Ref, (snapshot) => {
+            if (snapshot.exists()) {
+                const player2 = snapshot.val();
+                opponentName = player2.name;
+                console.log("Opponent joined:", opponentName);
+                document.getElementById('playerCount').textContent = '2/2';
+                document.getElementById('waitingMessage').textContent = 'Player 2 joined! Starting game...';
+                setTimeout(() => startGame(5), 1500);
+            }
         });
         
         return;
     }
     
-    const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const roomCode = generateRoomCode();
     currentRoom = roomCode;
     isPlayer1 = true;
 
@@ -150,46 +143,22 @@ function createRoom() {
 
     // Create room in Firebase
     const roomRef = ref(database, 'rooms/' + roomCode);
-    set(roomRef, {
+    await set(roomRef, {
         player1: {
             id: currentUser.uid,
-            username: currentUser.displayName || 'Player 1',
+            name: currentUser.displayName || 'Player 1',
             ready: false
         },
         gameState: 'waiting',
-        rounds: 5,
-        currentRound: 0,
-        createdAt: serverTimestamp()
-    })
-    .then(() => {
-        console.log("Room created successfully:", roomCode);
-        
-        // Listen for opponent joining
-        const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
-        onValue(player2Ref, (snapshot) => {
-            console.log("Player2 snapshot update:", snapshot.exists());
-            if (snapshot.exists()) {
-                opponentName = snapshot.val().username;
-                console.log("Opponent joined:", opponentName);
-                document.getElementById('playerCount').textContent = '2/2';
-                document.getElementById('waitingMessage').textContent = 'Game starting...';
-                setTimeout(() => startGame(5), 1500);
-            }
-        });
-
-        document.getElementById('roomCreation').style.display = 'none';
-        document.getElementById('waitingRoom').style.display = 'block';
-        document.getElementById('displayRoomCode').textContent = roomCode;
-    })
-    .catch((error) => {
-        console.error("Error creating room:", error);
-        showError('Failed to create room: ' + error.message);
+        created: Date.now()
     });
+
+    document.getElementById('roomCreation').style.display = 'none';
+    document.getElementById('waitingRoom').style.display = 'block';
+    document.getElementById('displayRoomCode').textContent = roomCode;
 }
 
-function joinRoom() {
-    console.log("Join room function called");
-    
+async function joinRoom() {
     if (!currentUser) {
         console.error("No authenticated user found");
         showError('You must be logged in to join a room');
@@ -218,108 +187,39 @@ function joinRoom() {
 
         // Check if room exists
         const roomRef = ref(database, 'rooms/' + roomCode);
-        get(roomRef)
-            .then((snapshot) => {
-                console.log("Room snapshot exists:", snapshot.exists());
-                if (snapshot.exists() && snapshot.val().player1 && !snapshot.val().player2) {
-                    // Store opponent's name
-                    opponentName = snapshot.val().player1.username;
-                    console.log("Found room, opponent:", opponentName);
-                    
-                    // Join room
-                    const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
-                    return set(player2Ref, {
-                        id: currentUser.uid,
-                        username: userName,
-                        ready: false
-                    });
-                } else {
-                    if (!snapshot.exists()) {
-                        console.error("Room not found");
-                        throw new Error('Room not found');
-                    } else if (!snapshot.val().player1) {
-                        console.error("Room is invalid");
-                        throw new Error('Room is invalid');
-                    } else {
-                        console.error("Room is full");
-                        throw new Error('Room is full');
-                    }
-                }
-            })
-            .then(() => {
-                console.log("Successfully joined room:", roomCode);
-                document.getElementById('roomCreation').style.display = 'none';
-                document.getElementById('waitingRoom').style.display = 'block';
-                document.getElementById('displayRoomCode').textContent = roomCode;
-                document.getElementById('playerCount').textContent = '2/2';
-                document.getElementById('waitingMessage').textContent = 'Game starting...';
-                
-                setTimeout(() => startGame(5), 1500);
-            })
-            .catch((error) => {
-                console.error("Error joining room:", error);
-                showError(error.message || 'Failed to join room');
-            });
-            
-        return;
-    }
-    
-    const roomCode = document.getElementById('roomCode').value.toUpperCase();
-    if (!roomCode) {
-        console.error("No room code entered");
-        showError('Please enter a room code');
-        return;
-    }
-    
-    console.log("Attempting to join room:", roomCode);
-    
-    currentRoom = roomCode;
-    isPlayer1 = false;
+        const snapshot = await get(roomRef);
 
-    // Check if room exists
-    const roomRef = ref(database, 'rooms/' + roomCode);
-    get(roomRef)
-        .then((snapshot) => {
-            console.log("Room snapshot exists:", snapshot.exists());
-            if (snapshot.exists() && snapshot.val().player1 && !snapshot.val().player2) {
-                // Store opponent's name
-                opponentName = snapshot.val().player1.username;
-                console.log("Found room, opponent:", opponentName);
-                
-                // Join room
-                const player2Ref = ref(database, 'rooms/' + roomCode + '/player2');
-                return set(player2Ref, {
-                    id: currentUser.uid,
-                    username: currentUser.displayName || 'Player 2',
-                    ready: false
-                });
-            } else {
-                if (!snapshot.exists()) {
-                    console.error("Room not found");
-                    throw new Error('Room not found');
-                } else if (!snapshot.val().player1) {
-                    console.error("Room is invalid");
-                    throw new Error('Room is invalid');
-                } else {
-                    console.error("Room is full");
-                    throw new Error('Room is full');
-                }
-            }
-        })
-        .then(() => {
-            console.log("Successfully joined room:", roomCode);
-            document.getElementById('roomCreation').style.display = 'none';
-            document.getElementById('waitingRoom').style.display = 'block';
-            document.getElementById('displayRoomCode').textContent = roomCode;
-            document.getElementById('playerCount').textContent = '2/2';
-            document.getElementById('waitingMessage').textContent = 'Game starting...';
-            
-            setTimeout(() => startGame(5), 1500);
-        })
-        .catch((error) => {
-            console.error("Error joining room:", error);
-            showError(error.message || 'Failed to join room');
+        if (!snapshot.exists()) {
+            console.error("Room not found");
+            throw new Error('Room not found');
+        } else if (!snapshot.val().player1) {
+            console.error("Room is invalid");
+            throw new Error('Room is invalid');
+        } else if (snapshot.val().player2) {
+            console.error("Room is full");
+            throw new Error('Room is full');
+        }
+
+        opponentName = snapshot.val().player1.name;
+        console.log("Found room, opponent:", opponentName);
+        
+        await update(roomRef, {
+            player2: {
+                id: currentUser.uid,
+                name: userName,
+                ready: false
+            },
+            gameState: 'starting'
         });
+
+        document.getElementById('roomCreation').style.display = 'none';
+        document.getElementById('waitingRoom').style.display = 'block';
+        document.getElementById('displayRoomCode').textContent = roomCode;
+        document.getElementById('playerCount').textContent = '2/2';
+        document.getElementById('waitingMessage').textContent = 'Joined room! Starting game...';
+        
+        setTimeout(() => startGame(5), 1500);
+    }
 }
 
 // Start the game with the specified number of rounds
@@ -403,17 +303,19 @@ function displayRoundResult(playerChoice, opponentChoice, result, roundNumber, i
     const resultDiv = document.getElementById('results');
     const resultClass = result.includes('win') ? 'win' : result.includes('lose') ? 'lose' : 'draw';
     
+    const opponentDisplayName = isComputer ? 'Computer' : opponentName;
+    
     resultDiv.innerHTML = `
         <div class="round-result ${resultClass}">
             <p>Round ${roundNumber}</p>
             <div class="choices-display">
                 <div class="choice">
-                    <p>You chose:</p>
+                    <p>${currentUser.displayName || currentUser.email}'s choice:</p>
                     <i class="fas fa-hand-${playerChoice.toLowerCase()}"></i>
                     <p>${playerChoice}</p>
                 </div>
                 <div class="choice">
-                    <p>${isComputer ? 'Computer' : opponentName} chose:</p>
+                    <p>${opponentDisplayName}'s choice:</p>
                     <i class="fas fa-hand-${opponentChoice.toLowerCase()}"></i>
                     <p>${opponentChoice}</p>
                 </div>
@@ -580,7 +482,7 @@ function playGame(playerChoice) {
 }
 
 // End the game and show final results
-function endGame() {
+async function endGame() {
     console.log("Ending game");
     document.getElementById('gameArea').style.display = 'none';
     document.getElementById('finalResult').style.display = 'block';
@@ -602,11 +504,11 @@ function endGame() {
     let gameResult = '';
     
     if (wins > losses) {
-        winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> You Win!';
+        winnerAnnouncement.innerHTML = `<i class="fas fa-crown"></i> ${currentUser.displayName || currentUser.email} Wins!`;
         winnerAnnouncement.className = 'winner-announcement win';
         gameResult = 'win';
     } else if (losses > wins) {
-        winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> You Lose!';
+        winnerAnnouncement.innerHTML = `<i class="fas fa-thumbs-down"></i> ${opponentName} Wins!`;
         winnerAnnouncement.className = 'winner-announcement lose';
         gameResult = 'loss';
     } else {
@@ -664,86 +566,54 @@ function endGame() {
         console.log("Updating stats for user:", currentUser.uid);
         const userStatsRef = ref(database, 'users/' + currentUser.uid + '/stats');
         
-        get(userStatsRef).then((snapshot) => {
-            console.log("Current stats snapshot exists:", snapshot.exists());
+        try {
+            const snapshot = await get(userStatsRef);
+            const currentStats = snapshot.exists() ? snapshot.val() : {
+                gamesPlayed: 0,
+                gamesWon: 0,
+                totalWins: 0,
+                totalLosses: 0,
+                totalDraws: 0
+            };
             
-            if (snapshot.exists()) {
-                const stats = snapshot.val();
-                console.log("Current stats in database:", stats);
-                
-                // Update stats based on game outcome, not individual rounds
-                const updatedStats = {
-                    gamesPlayed: (stats.gamesPlayed || 0) + 1,
-                    wins: (stats.wins || 0) + (gameResult === 'win' ? 1 : 0),
-                    losses: (stats.losses || 0) + (gameResult === 'loss' ? 1 : 0),
-                    draws: (stats.draws || 0) + (gameResult === 'draw' ? 1 : 0)
-                };
-                
-                // Also track round stats for detailed analytics
-                updatedStats.roundsPlayed = (stats.roundsPlayed || 0) + roundsPlayed;
-                updatedStats.roundsWon = (stats.roundsWon || 0) + wins;
-                updatedStats.roundsLost = (stats.roundsLost || 0) + losses;
-                updatedStats.roundsDrawn = (stats.roundsDrawn || 0) + draws;
-                
-                console.log("Updating user stats to:", updatedStats);
-                
-                set(userStatsRef, updatedStats)
-                    .then(() => {
-                        console.log("Stats successfully updated in database");
-                        // Re-enable buttons after a short delay to ensure data is properly saved
-                        setTimeout(() => {
-                            if (playAgainButton) playAgainButton.disabled = false;
-                            if (homeButton) homeButton.disabled = false;
-                        }, 500);
-                    })
-                    .catch(error => {
-                        console.error("Error setting stats in database:", error);
-                        // Re-enable buttons even if there's an error
-                        if (playAgainButton) playAgainButton.disabled = false;
-                        if (homeButton) homeButton.disabled = false;
-                    });
-            } else {
-                // Create new stats object if none exists
-                const newStats = {
-                    gamesPlayed: 1,
-                    wins: gameResult === 'win' ? 1 : 0,
-                    losses: gameResult === 'loss' ? 1 : 0,
-                    draws: gameResult === 'draw' ? 1 : 0,
-                    roundsPlayed: roundsPlayed,
-                    roundsWon: wins,
-                    roundsLost: losses,
-                    roundsDrawn: draws
-                };
-                
-                console.log("Creating new user stats:", newStats);
-                
-                set(userStatsRef, newStats)
-                    .then(() => {
-                        console.log("New stats successfully created in database");
-                        // Re-enable buttons after a short delay to ensure data is properly saved
-                        setTimeout(() => {
-                            if (playAgainButton) playAgainButton.disabled = false;
-                            if (homeButton) homeButton.disabled = false;
-                        }, 500);
-                    })
-                    .catch(error => {
-                        console.error("Error creating stats in database:", error);
-                        // Re-enable buttons even if there's an error
-                        if (playAgainButton) playAgainButton.disabled = false;
-                        if (homeButton) homeButton.disabled = false;
-                    });
-            }
-        }).catch(error => {
-            console.error("Error getting current stats:", error);
-            // Re-enable buttons if there's an error
+            const updatedStats = {
+                gamesPlayed: currentStats.gamesPlayed + 1,
+                gamesWon: currentStats.gamesWon + (wins > losses ? 1 : 0),
+                totalWins: currentStats.totalWins + wins,
+                totalLosses: currentStats.totalLosses + losses,
+                totalDraws: currentStats.totalDraws + draws
+            };
+            
+            await set(userStatsRef, updatedStats);
+            console.log("Stats updated successfully");
+            
+            // Enable navigation buttons after stats are updated
             if (playAgainButton) playAgainButton.disabled = false;
-            if (homeButton) homeButton.disabled = false;
-        });
+            
+        } catch (error) {
+            console.error("Error updating stats:", error);
+            showError('Failed to update stats. Please try again.');
+        }
     } else {
         console.log("User not authenticated, stats not updated");
         // Re-enable buttons immediately if user is not authenticated
         if (playAgainButton) playAgainButton.disabled = false;
         if (homeButton) homeButton.disabled = false;
+    }
+    
+    // If in multiplayer mode, clean up the room
+    if (gameMode === 'multiplayer' && currentRoom) {
+        console.log("Cleaning up multiplayer room:", currentRoom);
+        
+        // Remove listeners by setting them to null
+        // This is a simple way to "detach" listeners
+        const gameStateRef = ref(database, 'rooms/' + currentRoom + '/gameState');
+        const movesRef = ref(database, 'rooms/' + currentRoom + '/moves');
+        
+        // Reset room state
+        currentRoom = '';
+        isPlayer1 = false;
+        opponentName = '';
     }
 }
 
