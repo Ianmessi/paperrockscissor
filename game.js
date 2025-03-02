@@ -590,7 +590,6 @@ async function endGame() {
         const userStatsRef = ref(database, 'users/' + currentUser.uid + '/stats');
         
         try {
-            // Get current stats
             const snapshot = await get(userStatsRef);
             const currentStats = snapshot.exists() ? snapshot.val() : {
                 gamesPlayed: 0,
@@ -601,48 +600,28 @@ async function endGame() {
             };
             
             // Calculate new stats
-            const newStats = {
-                gamesPlayed: currentStats.gamesPlayed + 1,
-                totalWins: currentStats.totalWins + wins,
-                totalLosses: currentStats.totalLosses + losses,
-                totalDraws: currentStats.totalDraws + draws,
+            const newGamesPlayed = currentStats.gamesPlayed + 1;
+            const newTotalWins = currentStats.totalWins + wins;
+            const newTotalLosses = currentStats.totalLosses + losses;
+            const newTotalDraws = currentStats.totalDraws + draws;
+            
+            // Calculate win rate
+            const newWinRate = Math.round((newTotalWins / newGamesPlayed) * 100);
+            
+            const updatedStats = {
+                gamesPlayed: newGamesPlayed,
+                totalWins: newTotalWins,
+                totalLosses: newTotalLosses,
+                totalDraws: newTotalDraws,
+                winRate: newWinRate,
                 lastUpdated: serverTimestamp()
             };
             
-            // Calculate win rate
-            newStats.winRate = Math.round((newStats.totalWins / newStats.gamesPlayed) * 100);
+            await set(userStatsRef, updatedStats);
+            console.log("Stats updated successfully:", updatedStats);
             
-            console.log("Updating stats:", newStats);
-            
-            // Update stats in database
-            await set(userStatsRef, newStats);
-            console.log("Stats updated successfully");
-            
-            // Update UI with final results
-            const finalScoreContainer = document.createElement('div');
-            finalScoreContainer.className = 'final-score-container';
-            finalScoreContainer.innerHTML = `
-                <div class="final-score-item">
-                    <i class="fas fa-trophy"></i>
-                    <span>Wins: ${newStats.totalWins}</span>
-                </div>
-                <div class="final-score-item">
-                    <i class="fas fa-times-circle"></i>
-                    <span>Losses: ${newStats.totalLosses}</span>
-                </div>
-                <div class="final-score-item">
-                    <i class="fas fa-equals"></i>
-                    <span>Draws: ${newStats.totalDraws}</span>
-                </div>
-                <div class="final-score-item">
-                    <i class="fas fa-percentage"></i>
-                    <span>Win Rate: ${newStats.winRate}%</span>
-                </div>
-            `;
-            
-            // Add final score to the game container
-            const gameContainer = document.querySelector('.game-container');
-            gameContainer.appendChild(finalScoreContainer);
+            // Enable navigation buttons after stats are updated
+            if (playAgainButton) playAgainButton.disabled = false;
             
         } catch (error) {
             console.error("Error updating stats:", error);

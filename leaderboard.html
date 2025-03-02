@@ -5,29 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rock Paper Scissors - Leaderboard</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="leaderboard-page">
-    <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i>
-    </a>
-
     <div class="leaderboard-container">
-        <h1><i class="fas fa-trophy"></i>Leaderboard</h1>
+        <button onclick="window.history.back()" class="back-button">
+            <i class="fas fa-chevron-left"></i> Back
+        </button>
+        
+        <h1><i class="fas fa-trophy"></i> Leaderboard</h1>
+        
         <div class="leaderboard-header">
-            <div>Rank</div>
-            <div>Player</div>
+            <div class="rank-header">Rank</div>
+            <div class="player-header">Player</div>
             <div class="stats-header">
                 <div>Wins</div>
                 <div>Games</div>
                 <div>Win Rate</div>
             </div>
         </div>
-        <div id="leaderboardEntries">
+        
+        <div id="leaderboardList" class="leaderboard-list">
             <!-- Leaderboard entries will be populated here -->
             <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>Loading...
+                <i class="fas fa-spinner fa-spin"></i>
+                Loading leaderboard...
             </div>
         </div>
     </div>

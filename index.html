@@ -3,44 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rock Paper Scissors</title>
+    <title>Rock Paper Scissors Game</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="home-page">
     <div class="landing-container">
         <div class="welcome-header">
-            <div class="game-icon">
-                <i class="fas fa-hand-rock"></i>
-            </div>
+            <i class="fas fa-gamepad game-icon"></i>
             <h1>Rock Paper Scissors</h1>
-            <p class="subtitle">Challenge your friends or play against the computer!</p>
-            <p id="welcomeMessage" class="welcome-text">Welcome!</p>
-        </div>
-
-        <div class="quick-stats">
-            <div class="stat-item">
-                <i class="fas fa-trophy"></i>
-                <div class="stat-info">
-                    <span id="totalWins" class="stat-value">0</span>
-                    <span class="stat-label">Total Wins</span>
-                </div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-gamepad"></i>
-                <div class="stat-info">
-                    <span id="totalGames" class="stat-value">0</span>
-                    <span class="stat-label">Games Played</span>
-                </div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-chart-line"></i>
-                <div class="stat-info">
-                    <span id="winRate" class="stat-value">0%</span>
-                    <span class="stat-label">Win Rate</span>
-                </div>
-            </div>
+            <p class="subtitle">Challenge your friends or play against AI!</p>
+            <p id="userWelcome" class="user-welcome"></p>
         </div>
 
         <div class="menu-options">
@@ -48,19 +22,60 @@
                 <div class="button-content">
                     <i class="fas fa-play"></i>
                     <span>Play Game</span>
-                    <p class="button-description">Start a new game in single or multiplayer mode</p>
+                    <p class="button-description">Start a new game session</p>
+                </div>
+            </a>
+            <a href="reviews.html" class="menu-button">
+                <div class="button-content">
+                    <i class="fas fa-comments"></i>
+                    <span>Reviews</span>
+                    <p class="button-description">See what others are saying</p>
+                </div>
+            </a>
+            <a href="about.html" class="menu-button">
+                <div class="button-content">
+                    <i class="fas fa-user"></i>
+                    <span>About Developer</span>
+                    <p class="button-description">Learn more about the creator</p>
                 </div>
             </a>
             <a href="leaderboard.html" class="menu-button">
                 <div class="button-content">
                     <i class="fas fa-trophy"></i>
                     <span>Leaderboard</span>
-                    <p class="button-description">See who's at the top of the rankings</p>
                 </div>
+                <p class="button-description">View top players</p>
             </a>
+        </div>
+
+        <div class="quick-stats">
+            <div class="stat-item">
+                <i class="fas fa-trophy"></i>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalWins">0</span>
+                    <span class="stat-label">Wins</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-gamepad"></i>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalGames">0</span>
+                    <span class="stat-label">Games</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-star"></i>
+                <div class="stat-info">
+                    <span class="stat-value" id="winRate">0%</span>
+                    <span class="stat-label">Win Rate</span>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Scripts -->
+    <script type="module" src="auth-check.js"></script>
+    <script type="module" src="header.js"></script>
     <script type="module" src="index.js"></script>
 </body>
 </html>
