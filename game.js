@@ -303,19 +303,17 @@ function displayRoundResult(playerChoice, opponentChoice, result, roundNumber, i
     const resultDiv = document.getElementById('results');
     const resultClass = result.includes('win') ? 'win' : result.includes('lose') ? 'lose' : 'draw';
     
-    const opponentDisplayName = isComputer ? 'Computer' : opponentName;
-    
     resultDiv.innerHTML = `
         <div class="round-result ${resultClass}">
             <p>Round ${roundNumber}</p>
             <div class="choices-display">
                 <div class="choice">
-                    <p>${currentUser.displayName || currentUser.email}'s choice:</p>
+                    <p>Your choice:</p>
                     <i class="fas fa-hand-${playerChoice.toLowerCase()}"></i>
                     <p>${playerChoice}</p>
                 </div>
                 <div class="choice">
-                    <p>${opponentDisplayName}'s choice:</p>
+                    <p>${isComputer ? 'Computer' : 'Opponent'}'s choice:</p>
                     <i class="fas fa-hand-${opponentChoice.toLowerCase()}"></i>
                     <p>${opponentChoice}</p>
                 </div>
@@ -504,15 +502,15 @@ async function endGame() {
     let gameResult = '';
     
     if (wins > losses) {
-        winnerAnnouncement.innerHTML = `<i class="fas fa-crown"></i> ${currentUser.displayName || currentUser.email} Wins!`;
+        winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> You Win!';
         winnerAnnouncement.className = 'winner-announcement win';
         gameResult = 'win';
     } else if (losses > wins) {
-        winnerAnnouncement.innerHTML = `<i class="fas fa-thumbs-down"></i> ${opponentName} Wins!`;
+        winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> You Lose!';
         winnerAnnouncement.className = 'winner-announcement lose';
         gameResult = 'loss';
     } else {
-        winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> It\'s a Draw!';
+        winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> Draw!';
         winnerAnnouncement.className = 'winner-announcement draw';
         gameResult = 'draw';
     }
@@ -611,7 +609,7 @@ async function endGame() {
         const movesRef = ref(database, 'rooms/' + currentRoom + '/moves');
         
         // Reset room state
-        currentRoom = '';
+        currentRoom = null;
         isPlayer1 = false;
         opponentName = '';
     }
@@ -638,7 +636,7 @@ function resetGame() {
         const movesRef = ref(database, 'rooms/' + currentRoom + '/moves');
         
         // Reset room state
-        currentRoom = '';
+        currentRoom = null;
         isPlayer1 = false;
         opponentName = '';
     }
