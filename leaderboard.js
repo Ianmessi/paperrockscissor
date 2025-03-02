@@ -79,6 +79,18 @@ async function loadLeaderboard() {
     try {
         console.log("Starting to load leaderboard data...");
         
+        // Check if user is authenticated
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            console.log("No authenticated user");
+            leaderboardList.innerHTML = `
+                <div class="no-data">
+                    <p>Please log in to view the leaderboard.</p>
+                    <a href="login.html" class="play-now-btn">Login</a>
+                </div>`;
+            return;
+        }
+
         // Get reference to users
         const usersRef = ref(database, 'users');
         console.log("Fetching users from database...");
@@ -100,6 +112,7 @@ async function loadLeaderboard() {
         const users = [];
         snapshot.forEach((childSnapshot) => {
             const userData = childSnapshot.val();
+            console.log("Processing user data:", userData);
             const userStats = userData.stats || {};
             
             // Only include users that have played games
@@ -146,13 +159,27 @@ async function loadLeaderboard() {
 
     } catch (error) {
         console.error("Error loading leaderboard:", error);
-        leaderboardList.innerHTML = `
-            <div class="error">
-                <p>Failed to load leaderboard. Please try again.</p>
-                <button onclick="location.reload()" class="retry-btn">
-                    <i class="fas fa-redo"></i> Retry
-                </button>
-            </div>`;
+        console.error("Error details:", {
+            code: error.code,
+            message: error.message,
+            stack: error.stack
+        });
+        
+        if (error.message.includes("Permission denied")) {
+            leaderboardList.innerHTML = `
+                <div class="error">
+                    <p>Access denied. Please make sure you are logged in and have permission to view the leaderboard.</p>
+                    <a href="login.html" class="retry-btn">Login</a>
+                </div>`;
+        } else {
+            leaderboardList.innerHTML = `
+                <div class="error">
+                    <p>Failed to load leaderboard. Please try again.</p>
+                    <button onclick="location.reload()" class="retry-btn">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>`;
+        }
     }
 }
 
