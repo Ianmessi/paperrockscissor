@@ -715,12 +715,13 @@ body.about-page {
 }
 
 .user-welcome {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: block;
+    text-align: center;
+    margin-top: 10px;
     margin-bottom: 20px;
     color: white;
-    font-size: 1.2em;
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 .auth-button {
@@ -1609,7 +1610,7 @@ body.about-page {
     width: 100%;
     height: 100%;
     background: radial-gradient(circle at center, rgba(74, 144, 226, 0.1) 0%, transparent 70%);
-    z-index: 1;
+    z-index: -1;
 }
 
 .final-result h2 {
@@ -1862,6 +1863,13 @@ body.about-page {
     background: rgba(74, 144, 226, 0.5);
     transform: translateY(-5px) scale(1.05);
     box-shadow: 0 10px 30px rgba(74, 144, 226, 0.7);
+}
+
+.play-again-button:disabled, .home-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 @keyframes pulseButton {
@@ -2202,4 +2210,45 @@ body.about-page {
     box-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
     animation: pulseText 2s infinite alternate;
+}
+
+.game-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.play-again-button, .home-button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.play-again-button {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.home-button {
+    background-color: #34c759;
+    color: white;
+}
+
+.play-again-button:hover, .home-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.play-again-button:active, .home-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }

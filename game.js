@@ -312,12 +312,27 @@ function endGame() {
         gameResult = 'draw';
     }
     
+    console.log("Game ended with result:", gameResult);
+    console.log("Final scores - Wins:", wins, "Losses:", losses, "Draws:", draws);
+    
+    // Disable navigation buttons until stats are updated
+    const playAgainButton = document.querySelector('.play-again-button');
+    const homeButton = document.querySelector('.home-button');
+    
+    if (playAgainButton) playAgainButton.disabled = true;
+    if (homeButton) homeButton.disabled = true;
+    
     // Update user stats in database if authenticated
     if (currentUser) {
+        console.log("Updating stats for user:", currentUser.uid);
         const userStatsRef = ref(database, 'users/' + currentUser.uid + '/stats');
+        
         get(userStatsRef).then((snapshot) => {
+            console.log("Current stats snapshot exists:", snapshot.exists());
+            
             if (snapshot.exists()) {
                 const stats = snapshot.val();
+                console.log("Current stats in database:", stats);
                 
                 // Update stats based on game outcome, not individual rounds
                 const updatedStats = {
@@ -333,9 +348,23 @@ function endGame() {
                 updatedStats.roundsLost = (stats.roundsLost || 0) + losses;
                 updatedStats.roundsDrawn = (stats.roundsDrawn || 0) + draws;
                 
-                console.log("Updating user stats:", updatedStats);
+                console.log("Updating user stats to:", updatedStats);
                 
-                set(userStatsRef, updatedStats);
+                set(userStatsRef, updatedStats)
+                    .then(() => {
+                        console.log("Stats successfully updated in database");
+                        // Re-enable buttons after a short delay to ensure data is properly saved
+                        setTimeout(() => {
+                            if (playAgainButton) playAgainButton.disabled = false;
+                            if (homeButton) homeButton.disabled = false;
+                        }, 500);
+                    })
+                    .catch(error => {
+                        console.error("Error setting stats in database:", error);
+                        // Re-enable buttons even if there's an error
+                        if (playAgainButton) playAgainButton.disabled = false;
+                        if (homeButton) homeButton.disabled = false;
+                    });
             } else {
                 // Create new stats object if none exists
                 const newStats = {
@@ -351,11 +380,33 @@ function endGame() {
                 
                 console.log("Creating new user stats:", newStats);
                 
-                set(userStatsRef, newStats);
+                set(userStatsRef, newStats)
+                    .then(() => {
+                        console.log("New stats successfully created in database");
+                        // Re-enable buttons after a short delay to ensure data is properly saved
+                        setTimeout(() => {
+                            if (playAgainButton) playAgainButton.disabled = false;
+                            if (homeButton) homeButton.disabled = false;
+                        }, 500);
+                    })
+                    .catch(error => {
+                        console.error("Error creating stats in database:", error);
+                        // Re-enable buttons even if there's an error
+                        if (playAgainButton) playAgainButton.disabled = false;
+                        if (homeButton) homeButton.disabled = false;
+                    });
             }
         }).catch(error => {
-            console.error("Error updating stats:", error);
+            console.error("Error getting current stats:", error);
+            // Re-enable buttons if there's an error
+            if (playAgainButton) playAgainButton.disabled = false;
+            if (homeButton) homeButton.disabled = false;
         });
+    } else {
+        console.log("User not authenticated, stats not updated");
+        // Re-enable buttons immediately if user is not authenticated
+        if (playAgainButton) playAgainButton.disabled = false;
+        if (homeButton) homeButton.disabled = false;
     }
 }
 
@@ -363,6 +414,12 @@ function endGame() {
 function resetGame() {
     document.getElementById('finalResult').style.display = 'none';
     document.getElementById('gameModeSelection').style.display = 'block';
+}
+
+// Go back to home page
+function goToHomePage() {
+    console.log("Navigating back to home page");
+    window.location.href = 'index.html';
 }
 
 // Helper function to show error messages
@@ -386,7 +443,8 @@ const gameModule = {
     joinRoom,
     startGame,
     playGame,
-    resetGame
+    resetGame,
+    goToHomePage
 };
 
 // Make game functions available globally
