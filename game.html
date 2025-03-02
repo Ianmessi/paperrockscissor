@@ -46,18 +46,33 @@
             <div id="roomCreation">
                 <h2>Multiplayer Game</h2>
                 <div class="room-options">
-                    <button onclick="window.gameModule.createRoom()" class="mode-button">Create Room</button>
+                    <button onclick="window.gameModule.createRoom()" class="mode-button">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Create Room</span>
+                    </button>
                     <div class="join-room">
-                        <input type="text" id="roomCode" placeholder="Enter Room Code">
-                        <button onclick="window.gameModule.joinRoom()" class="mode-button">Join Room</button>
+                        <div class="room-code-input">
+                            <i class="fas fa-key"></i>
+                            <input type="text" id="roomCode" placeholder="Enter Room Code">
+                        </div>
+                        <button onclick="window.gameModule.joinRoom()" class="mode-button">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Join Room</span>
+                        </button>
                     </div>
                 </div>
             </div>
             <div id="waitingRoom" style="display: none;">
                 <h3>Room Code: <span id="displayRoomCode"></span></h3>
+                <div class="share-code">
+                    <p>Share this code with your friend to join the game</p>
+                    <button onclick="window.gameModule.copyRoomCode()" class="copy-button">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                </div>
                 <div class="player-status">
-                    <p>Players: <span id="playerCount">1/2</span></p>
-                    <p id="waitingMessage">Waiting for opponent...</p>
+                    <p><i class="fas fa-users"></i> Players: <span id="playerCount">1/2</span></p>
+                    <p id="waitingMessage"><i class="fas fa-spinner fa-spin"></i> Waiting for opponent...</p>
                 </div>
             </div>
         </div>
@@ -67,34 +82,34 @@
             <div class="score-board">
                 <div class="score-item">
                     <i class="fas fa-trophy"></i>
-                    <span>Wins: <span id="wins">0</span></span>
+                    <span>Wins: </span><span id="wins">0</span>
                 </div>
                 <div class="score-item">
                     <i class="fas fa-times"></i>
-                    <span>Losses: <span id="losses">0</span></span>
+                    <span>Losses: </span><span id="losses">0</span>
                 </div>
                 <div class="score-item">
                     <i class="fas fa-equals"></i>
-                    <span>Draws: <span id="draws">0</span></span>
+                    <span>Draws: </span><span id="draws">0</span>
                 </div>
                 <div class="score-item">
                     <i class="fas fa-hourglass-half"></i>
-                    <span>Rounds Left: <span id="roundsLeft">0</span></span>
+                    <span>Rounds Left: </span><span id="roundsLeft">0</span>
                 </div>
             </div>
 
             <div class="choices">
-                <button onclick="window.gameModule.playGame('Rock')">
+                <button onclick="window.gameModule.playGame('Rock')" class="choice-button">
                     <i class="fas fa-hand-rock"></i>
-                    Rock
+                    <span>Rock</span>
                 </button>
-                <button onclick="window.gameModule.playGame('Paper')">
+                <button onclick="window.gameModule.playGame('Paper')" class="choice-button">
                     <i class="fas fa-hand-paper"></i>
-                    Paper
+                    <span>Paper</span>
                 </button>
-                <button onclick="window.gameModule.playGame('Scissors')">
+                <button onclick="window.gameModule.playGame('Scissors')" class="choice-button">
                     <i class="fas fa-hand-scissors"></i>
-                    Scissors
+                    <span>Scissors</span>
                 </button>
             </div>
 
@@ -102,13 +117,15 @@
         </div>
 
         <!-- Final Result -->
-        <div id="finalResult" class="final-result" style="display: none;">
+        <div id="finalResult" style="display: none;">
             <h2>Game Over!</h2>
             <div id="winnerAnnouncement" class="winner-announcement"></div>
             <div id="finalScore" class="final-score"></div>
-            <button onclick="window.gameModule.resetGame()" class="play-again-button">
-                <i class="fas fa-redo"></i> Play Again
-            </button>
+            <div class="game-buttons">
+                <button onclick="window.gameModule.resetGame()" class="play-again-button">
+                    <i class="fas fa-redo"></i> Play Again
+                </button>
+            </div>
         </div>
     </div>
 

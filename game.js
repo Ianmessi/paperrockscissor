@@ -298,31 +298,6 @@ function setupMultiplayerListeners() {
     });
 }
 
-// Display result for a round
-function displayRoundResult(playerChoice, opponentChoice, result, roundNumber, isComputer = false) {
-    const resultDiv = document.getElementById('results');
-    const resultClass = result.includes('win') ? 'win' : result.includes('lose') ? 'lose' : 'draw';
-    
-    resultDiv.innerHTML = `
-        <div class="round-result ${resultClass}">
-            <p>Round ${roundNumber}</p>
-            <div class="choices-display">
-                <div class="choice">
-                    <p>Your choice:</p>
-                    <i class="fas fa-hand-${playerChoice.toLowerCase()}"></i>
-                    <p>${playerChoice}</p>
-                </div>
-                <div class="choice">
-                    <p>${isComputer ? 'Computer' : 'Opponent'}'s choice:</p>
-                    <i class="fas fa-hand-${opponentChoice.toLowerCase()}"></i>
-                    <p>${opponentChoice}</p>
-                </div>
-            </div>
-            <p class="result-text">${result}</p>
-        </div>
-    ` + resultDiv.innerHTML;
-}
-
 // Process a multiplayer round
 function processMultiplayerRound(moves) {
     const playerChoice = isPlayer1 ? moves.player1 : moves.player2;
@@ -334,17 +309,17 @@ function processMultiplayerRound(moves) {
     
     // Determine the winner
     if (playerChoice === opponentChoice) {
-        result = 'Draw!';
+        result = 'DRAW';
         draws++;
     } else if (
         (playerChoice === 'Rock' && opponentChoice === 'Scissors') ||
         (playerChoice === 'Paper' && opponentChoice === 'Rock') ||
         (playerChoice === 'Scissors' && opponentChoice === 'Paper')
     ) {
-        result = 'You win!';
+        result = 'YOU WIN';
         wins++;
     } else {
-        result = 'You lose!';
+        result = 'YOU LOSE';
         losses++;
     }
     
@@ -366,7 +341,38 @@ function processMultiplayerRound(moves) {
     // Check if game is over
     if (roundsPlayed >= totalRounds) {
         endGame();
+    } else {
+        // Re-enable choice buttons for next round
+        const choiceButtons = document.querySelectorAll('.choices button');
+        choiceButtons.forEach(button => {
+            button.disabled = false;
+        });
     }
+}
+
+// Display result for a round
+function displayRoundResult(playerChoice, opponentChoice, result, roundNumber) {
+    const resultDiv = document.getElementById('results');
+    const resultClass = result === 'YOU WIN' ? 'win' : result === 'YOU LOSE' ? 'lose' : 'draw';
+    
+    resultDiv.innerHTML = `
+        <div class="round-result ${resultClass}">
+            <p>Round ${roundNumber}</p>
+            <div class="choices-display">
+                <div class="choice">
+                    <p>Your choice:</p>
+                    <i class="fas fa-hand-${playerChoice.toLowerCase()}"></i>
+                    <p>${playerChoice}</p>
+                </div>
+                <div class="choice">
+                    <p>Opponent's choice:</p>
+                    <i class="fas fa-hand-${opponentChoice.toLowerCase()}"></i>
+                    <p>${opponentChoice}</p>
+                </div>
+            </div>
+            <p class="result-text">${result}</p>
+        </div>
+    ` + resultDiv.innerHTML;
 }
 
 // Play a round of the game
@@ -502,15 +508,15 @@ async function endGame() {
     let gameResult = '';
     
     if (wins > losses) {
-        winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> You Win!';
+        winnerAnnouncement.innerHTML = '<i class="fas fa-crown"></i> YOU WIN!';
         winnerAnnouncement.className = 'winner-announcement win';
         gameResult = 'win';
     } else if (losses > wins) {
-        winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> You Lose!';
+        winnerAnnouncement.innerHTML = '<i class="fas fa-thumbs-down"></i> YOU LOSE!';
         winnerAnnouncement.className = 'winner-announcement lose';
         gameResult = 'loss';
     } else {
-        winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> Draw!';
+        winnerAnnouncement.innerHTML = '<i class="fas fa-handshake"></i> DRAW!';
         winnerAnnouncement.className = 'winner-announcement draw';
         gameResult = 'draw';
     }
@@ -666,6 +672,22 @@ function showError(message) {
     }
 }
 
+// Copy room code to clipboard
+function copyRoomCode() {
+    const roomCode = document.getElementById('displayRoomCode').textContent;
+    navigator.clipboard.writeText(roomCode).then(() => {
+        const copyButton = document.querySelector('.copy-button');
+        const originalText = copyButton.innerHTML;
+        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            copyButton.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy room code:', err);
+        showError('Failed to copy room code');
+    });
+}
+
 // Export game functions for use in HTML
 const gameModule = {
     selectGameMode,
@@ -674,7 +696,8 @@ const gameModule = {
     startGame,
     playGame,
     resetGame,
-    goToHomePage
+    goToHomePage,
+    copyRoomCode
 };
 
 // Make game functions available globally
