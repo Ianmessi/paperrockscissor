@@ -10,7 +10,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, set, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -157,9 +157,11 @@ function signup() {
                     lastLogin: new Date().toISOString(),
                     stats: {
                         gamesPlayed: 0,
-                        wins: 0,
-                        losses: 0,
-                        draws: 0
+                        totalWins: 0,
+                        totalLosses: 0,
+                        totalDraws: 0,
+                        winRate: 0,
+                        lastUpdated: serverTimestamp()
                     }
                 });
             });
@@ -227,9 +229,11 @@ function signInWithGoogle(buttonElement, errorElement, isSignup = false) {
                             lastLogin: new Date().toISOString(),
                             stats: {
                                 gamesPlayed: 0,
-                                wins: 0,
-                                losses: 0,
-                                draws: 0
+                                totalWins: 0,
+                                totalLosses: 0,
+                                totalDraws: 0,
+                                winRate: 0,
+                                lastUpdated: serverTimestamp()
                             }
                         });
                     } else {

@@ -63,9 +63,11 @@ function signup() {
                 email: email,
                 stats: {
                     gamesPlayed: 0,
-                    wins: 0,
-                    losses: 0,
-                    draws: 0
+                    totalWins: 0,
+                    totalLosses: 0,
+                    totalDraws: 0,
+                    winRate: 0,
+                    lastUpdated: firebase.database.ServerValue.TIMESTAMP
                 }
             });
         })
@@ -96,9 +98,11 @@ function signInWithGoogle() {
                             email: user.email,
                             stats: {
                                 gamesPlayed: 0,
-                                wins: 0,
-                                losses: 0,
-                                draws: 0
+                                totalWins: 0,
+                                totalLosses: 0,
+                                totalDraws: 0,
+                                winRate: 0,
+                                lastUpdated: firebase.database.ServerValue.TIMESTAMP
                             }
                         });
                     }
