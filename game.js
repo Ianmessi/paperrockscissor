@@ -38,9 +38,11 @@ onAuthStateChanged(auth, (user) => {
             if (!snapshot.exists()) {
                 set(userStatsRef, {
                     gamesPlayed: 0,
-                    wins: 0,
-                    losses: 0,
-                    draws: 0
+                    totalWins: 0,
+                    totalLosses: 0,
+                    totalDraws: 0,
+                    winRate: 0,
+                    lastUpdated: serverTimestamp()
                 });
             }
         });
