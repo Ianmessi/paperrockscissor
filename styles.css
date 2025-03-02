@@ -1970,15 +1970,43 @@ body.about-page {
 
 .no-data, .error {
     text-align: center;
-    padding: 20px;
-    color: #ffffff;
-    font-size: 1.2em;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    margin: 20px 0;
 }
 
-.error {
-    color: #ff4444;
+.no-data p, .error p {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.play-now-btn, .retry-btn {
+    display: inline-block;
+    padding: 12px 25px;
+    background: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-top: 15px;
+}
+
+.retry-btn {
+    background: #3498db;
+}
+
+.play-now-btn:hover, .retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.play-now-btn:active, .retry-btn:active {
+    transform: translateY(0);
 }
 
 @keyframes trophy-shine {

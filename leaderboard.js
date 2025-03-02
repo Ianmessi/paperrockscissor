@@ -66,25 +66,49 @@ async function loadLeaderboard() {
     leaderboardList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading leaderboard...</div>';
 
     try {
-        // Get top 10 users ordered by total wins
+        console.log("Starting to load leaderboard data...");
+        
+        // Get reference to users
         const usersRef = ref(database, 'users');
-        const topPlayersQuery = query(usersRef, orderByChild('stats/totalWins'), limitToLast(10));
-        const snapshot = await get(topPlayersQuery);
-
+        console.log("Fetching users from:", usersRef.toString());
+        
+        // Get all users first to check if we have data
+        const snapshot = await get(usersRef);
+        
         if (!snapshot.exists()) {
-            leaderboardList.innerHTML = '<div class="no-data">No players found</div>';
+            console.log("No users found in database");
+            leaderboardList.innerHTML = `
+                <div class="no-data">
+                    <p>No players found. Be the first to play!</p>
+                    <a href="game.html" class="play-now-btn">Play Now</a>
+                </div>`;
             return;
         }
 
-        // Convert snapshot to array and sort by wins
+        // Convert snapshot to array and filter users with stats
         const users = [];
         snapshot.forEach((childSnapshot) => {
             const userData = childSnapshot.val();
-            users.push({
-                id: childSnapshot.key,
-                ...userData
-            });
+            console.log("Processing user data:", userData);
+            
+            // Only include users that have stats
+            if (userData.stats && userData.stats.totalWins !== undefined) {
+                users.push({
+                    id: childSnapshot.key,
+                    ...userData
+                });
+            }
         });
+
+        if (users.length === 0) {
+            console.log("No users with stats found");
+            leaderboardList.innerHTML = `
+                <div class="no-data">
+                    <p>No game statistics available yet. Start playing to appear on the leaderboard!</p>
+                    <a href="game.html" class="play-now-btn">Play Now</a>
+                </div>`;
+            return;
+        }
 
         // Sort users by total wins (descending)
         users.sort((a, b) => {
@@ -93,19 +117,34 @@ async function loadLeaderboard() {
             return winsB - winsA;
         });
 
+        // Take only top 10 users
+        const topUsers = users.slice(0, 10);
+        console.log("Top 10 users:", topUsers);
+
         // Clear loading spinner
         leaderboardList.innerHTML = '';
 
         // Create and append entries
-        users.forEach((user, index) => {
+        topUsers.forEach((user, index) => {
             const entry = createLeaderboardEntry(index + 1, user, user.id);
             leaderboardList.appendChild(entry);
         });
 
     } catch (error) {
         console.error("Error loading leaderboard:", error);
-        showError('Failed to load leaderboard. Please try again.');
-        leaderboardList.innerHTML = '<div class="error">Failed to load leaderboard</div>';
+        console.error("Error details:", {
+            code: error.code,
+            message: error.message,
+            stack: error.stack
+        });
+        
+        leaderboardList.innerHTML = `
+            <div class="error">
+                <p>Failed to load leaderboard. Error: ${error.message}</p>
+                <button onclick="location.reload()" class="retry-btn">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>`;
     }
 }
 
