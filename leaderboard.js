@@ -57,9 +57,18 @@ function createLeaderboardEntry(rank, playerData, userId) {
             <span class="player-name">${playerData.email || 'Anonymous'}</span>
         </div>
         <div class="player-stats">
-            <div class="wins">${totalWins}</div>
-            <div class="games">${gamesPlayed}</div>
-            <div class="win-rate">${winRate}%</div>
+            <div class="stat-item">
+                <span class="stat-label">Wins:</span>
+                <span class="stat-value">${totalWins}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Games:</span>
+                <span class="stat-value">${gamesPlayed}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Win Rate:</span>
+                <span class="stat-value">${winRate}%</span>
+            </div>
         </div>
     `;
 
@@ -77,20 +86,15 @@ async function loadLeaderboard() {
     leaderboardList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading leaderboard...</div>';
 
     try {
-        console.log("Starting to load leaderboard data...");
-        
-        // Check if user is authenticated
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            console.log("No authenticated user");
-            leaderboardList.innerHTML = `
-                <div class="no-data">
-                    <p>Please log in to view the leaderboard.</p>
-                    <a href="login.html" class="play-now-btn">Login</a>
-                </div>`;
+        // Wait for auth state to be ready
+        const user = auth.currentUser;
+        if (!user) {
+            console.log("No authenticated user, waiting for auth state to change...");
             return;
         }
 
+        console.log("Loading leaderboard for authenticated user:", user.email);
+        
         // Get reference to users
         const usersRef = ref(database, 'users');
         console.log("Fetching users from database...");
@@ -112,7 +116,6 @@ async function loadLeaderboard() {
         const users = [];
         snapshot.forEach((childSnapshot) => {
             const userData = childSnapshot.val();
-            console.log("Processing user data:", userData);
             const userStats = userData.stats || {};
             
             // Only include users that have played games
@@ -159,17 +162,10 @@ async function loadLeaderboard() {
 
     } catch (error) {
         console.error("Error loading leaderboard:", error);
-        console.error("Error details:", {
-            code: error.code,
-            message: error.message,
-            stack: error.stack
-        });
-        
         if (error.message.includes("Permission denied")) {
             leaderboardList.innerHTML = `
                 <div class="error">
-                    <p>Access denied. Please make sure you are logged in and have permission to view the leaderboard.</p>
-                    <a href="login.html" class="retry-btn">Login</a>
+                    <p>Please wait while we load the leaderboard...</p>
                 </div>`;
         } else {
             leaderboardList.innerHTML = `
@@ -185,6 +181,11 @@ async function loadLeaderboard() {
 
 // Load leaderboard when auth state changes
 onAuthStateChanged(auth, (user) => {
-    console.log("Auth state changed, loading leaderboard...");
-    loadLeaderboard();
+    console.log("Auth state changed:", user ? `User logged in: ${user.email}` : "User logged out");
+    if (user) {
+        loadLeaderboard();
+    } else {
+        // Redirect to login if not authenticated
+        window.location.href = 'login.html';
+    }
 }); 
