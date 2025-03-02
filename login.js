@@ -117,39 +117,19 @@ loginForm.addEventListener('keypress', (e) => {
 function signup() {
     const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    if (!email || !password || !confirmPassword) {
-        signupErrorMessage.textContent = 'Please fill in all fields';
-        return;
-    }
-    
-    if (password !== confirmPassword) {
-        signupErrorMessage.textContent = 'Passwords do not match';
-        return;
-    }
-    
-    if (password.length < 6) {
-        signupErrorMessage.textContent = 'Password must be at least 6 characters';
-        return;
-    }
-    
-    // Show loading state
-    signupButton.disabled = true;
-    signupButton.textContent = 'Creating account...';
-    
+    const username = email.split('@')[0]; // Use part before @ as username
+
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-            // Set display name (username) from email
             const user = userCredential.user;
-            const username = email.split('@')[0]; // Use part before @ as username
             
+            // Set display name
             return updateProfile(user, {
                 displayName: username
             }).then(() => {
                 console.log("Display name set:", username);
                 
-                // Create user record in database with initial stats
+                // Initialize user stats in database
                 return set(ref(database, 'users/' + user.uid), {
                     email: user.email,
                     username: username,
@@ -157,38 +137,22 @@ function signup() {
                     lastLogin: new Date().toISOString(),
                     stats: {
                         gamesPlayed: 0,
-                        wins: 0,
-                        losses: 0,
-                        draws: 0
+                        totalWins: 0,
+                        totalLosses: 0,
+                        totalDraws: 0,
+                        winRate: 0,
+                        lastUpdated: new Date().toISOString()
                     }
                 });
             });
         })
         .then(() => {
             console.log("User record created in database");
-            // Redirect to home page
             window.location.href = 'index.html';
         })
         .catch((error) => {
-            // Reset loading state
-            signupButton.disabled = false;
-            signupButton.textContent = 'Sign Up';
-            
-            console.error("Signup error:", error);
-            // Handle errors
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    signupErrorMessage.textContent = 'Email already in use';
-                    break;
-                case 'auth/invalid-email':
-                    signupErrorMessage.textContent = 'Invalid email format';
-                    break;
-                case 'auth/weak-password':
-                    signupErrorMessage.textContent = 'Password is too weak';
-                    break;
-                default:
-                    signupErrorMessage.textContent = 'Signup failed: ' + error.message;
-            }
+            console.error("Error during signup:", error);
+            showError(error.message);
         });
 }
 
@@ -204,21 +168,18 @@ signupForm.addEventListener('keypress', (e) => {
 });
 
 // Google Sign-in functionality (shared between login and signup)
-function signInWithGoogle(buttonElement, errorElement, isSignup = false) {
-    // Show loading state
-    buttonElement.disabled = true;
-    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+function signInWithGoogle() {
+    const provider = new GoogleAuthProvider();
     
-    signInWithPopup(auth, googleProvider)
+    signInWithPopup(auth, provider)
         .then((result) => {
-            // This gives you a Google Access Token
             const user = result.user;
             
-            // Check if user exists in database, if not create a record
+            // Check if user exists in database
             return get(ref(database, 'users/' + user.uid))
                 .then((snapshot) => {
                     if (!snapshot.exists()) {
-                        // Create new user record
+                        // Create new user record with stats
                         return set(ref(database, 'users/' + user.uid), {
                             email: user.email,
                             username: user.displayName || user.email.split('@')[0],
@@ -227,9 +188,11 @@ function signInWithGoogle(buttonElement, errorElement, isSignup = false) {
                             lastLogin: new Date().toISOString(),
                             stats: {
                                 gamesPlayed: 0,
-                                wins: 0,
-                                losses: 0,
-                                draws: 0
+                                totalWins: 0,
+                                totalLosses: 0,
+                                totalDraws: 0,
+                                winRate: 0,
+                                lastUpdated: new Date().toISOString()
                             }
                         });
                     } else {
@@ -239,49 +202,22 @@ function signInWithGoogle(buttonElement, errorElement, isSignup = false) {
                 });
         })
         .then(() => {
-            // Redirect to home page
             window.location.href = 'index.html';
         })
         .catch((error) => {
-            // Handle errors
-            buttonElement.disabled = false;
-            
-            // Reset button text based on whether it's login or signup
-            if (isSignup) {
-                buttonElement.innerHTML = '<i class="fab fa-google"></i> Sign up with Google';
-            } else {
-                buttonElement.innerHTML = '<i class="fab fa-google"></i> Sign in with Google';
-            }
-            
-            console.error("Google sign-in error:", error);
-            
-            switch (error.code) {
-                case 'auth/popup-closed-by-user':
-                    errorElement.textContent = 'Sign-in cancelled. Please try again.';
-                    break;
-                case 'auth/popup-blocked':
-                    errorElement.textContent = 'Pop-up blocked by browser. Please allow pop-ups for this site.';
-                    break;
-                case 'auth/cancelled-popup-request':
-                    errorElement.textContent = 'Multiple pop-up requests. Please try again.';
-                    break;
-                case 'auth/network-request-failed':
-                    errorElement.textContent = 'Network error. Please check your connection and try again.';
-                    break;
-                default:
-                    errorElement.textContent = 'Google sign-in failed: ' + (error.message || 'Please try again');
-            }
+            console.error("Error during Google sign-in:", error);
+            showError(error.message);
         });
 }
 
 // Google login button
 googleLoginButton.addEventListener('click', () => {
-    signInWithGoogle(googleLoginButton, errorMessage, false);
+    signInWithGoogle();
 });
 
 // Google signup button
 googleSignupButton.addEventListener('click', () => {
-    signInWithGoogle(googleSignupButton, signupErrorMessage, true);
+    signInWithGoogle();
 });
 
 // Forgot password functionality
