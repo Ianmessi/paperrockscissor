@@ -13,18 +13,23 @@ const auth = getAuth(app);
 const totalWinsElement = document.getElementById('totalWins');
 const totalGamesElement = document.getElementById('totalGames');
 const totalLossesElement = document.getElementById('winRate'); // Reuse winRate element for losses
-const totalDrawsElement = document.getElementById('totalDraws');
-const winRateElement = document.getElementById('winRatePercent');
+const calculatedWinRateElement = document.getElementById('calculatedWinRate');
 const userWelcome = document.getElementById('userWelcome');
 
 console.log("index.js loaded - DOM Elements:", {
     totalWinsElement,
     totalGamesElement,
     totalLossesElement,
-    totalDrawsElement,
-    winRateElement,
+    calculatedWinRateElement,
     userWelcome
 });
+
+// Function to calculate win rate
+function calculateWinRate(wins, totalGames) {
+    if (totalGames === 0) return 0;
+    // Calculate win rate with 2 decimal places
+    return Math.round((wins / totalGames) * 100 * 100) / 100;
+}
 
 // Function to update the UI with stats
 function updateStatsUI(stats) {
@@ -35,8 +40,7 @@ function updateStatsUI(stats) {
         if (totalWinsElement) totalWinsElement.textContent = '0';
         if (totalGamesElement) totalGamesElement.textContent = '0';
         if (totalLossesElement) totalLossesElement.textContent = '0';
-        if (totalDrawsElement) totalDrawsElement.textContent = '0';
-        if (winRateElement) winRateElement.textContent = '0%';
+        if (calculatedWinRateElement) calculatedWinRateElement.textContent = '0%';
         return;
     }
     
@@ -44,34 +48,34 @@ function updateStatsUI(stats) {
     const gamesPlayed = stats.gamesPlayed || 0;
     const totalWins = stats.totalWins || 0;
     const totalLosses = stats.totalLosses || 0;
-    const totalDraws = stats.totalDraws || 0;
     
     // Calculate win rate
-    const winRate = gamesPlayed > 0 ? Math.round((totalWins / gamesPlayed) * 100) : 0;
+    const winRate = calculateWinRate(totalWins, gamesPlayed);
     
     console.log("Processing stats for display:", {
         gamesPlayed,
         totalWins,
         totalLosses,
-        totalDraws,
         winRate
     });
     
     // Update UI elements if they exist
     if (totalWinsElement) totalWinsElement.textContent = String(totalWins);
     if (totalGamesElement) totalGamesElement.textContent = String(gamesPlayed);
-    if (totalLossesElement) totalLossesElement.textContent = String(totalLosses);
-    if (totalDrawsElement) totalDrawsElement.textContent = String(totalDraws);
-    if (winRateElement) {
-        winRateElement.textContent = winRate + '%';
+    if (totalLossesElement) {
+        totalLossesElement.textContent = String(totalLosses);
+        totalLossesElement.className = 'stat-value'; // Reset classes
+    }
+    if (calculatedWinRateElement) {
+        calculatedWinRateElement.textContent = winRate + '%';
         // Add color classes based on win rate
-        winRateElement.className = 'stat-value';
+        calculatedWinRateElement.className = 'stat-value';
         if (winRate >= 60) {
-            winRateElement.classList.add('high-rate');
+            calculatedWinRateElement.classList.add('high-rate');
         } else if (winRate >= 40) {
-            winRateElement.classList.add('medium-rate');
+            calculatedWinRateElement.classList.add('medium-rate');
         } else {
-            winRateElement.classList.add('low-rate');
+            calculatedWinRateElement.classList.add('low-rate');
         }
     }
 }
