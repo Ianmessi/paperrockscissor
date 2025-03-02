@@ -601,28 +601,40 @@ async function endGame() {
                 winRate: 0
             };
             
-            // Determine game outcome based on final round tally
-            const gameWon = wins > losses;
-            const gameLost = losses > wins;
-            const gameDraw = wins === losses;
+            // Determine final game outcome
+            const finalGameWon = wins > losses;
+            const finalGameLost = losses > wins;
+            const finalGameDraw = wins === losses;
+            
+            console.log("Final game outcome:", {
+                wins,
+                losses,
+                draws,
+                finalGameWon,
+                finalGameLost,
+                finalGameDraw
+            });
             
             // Update stats based on final game outcome only
             const updatedStats = {
                 gamesPlayed: currentStats.gamesPlayed + 1,
-                totalWins: currentStats.totalWins + (gameWon ? 1 : 0),
-                totalLosses: currentStats.totalLosses + (gameLost ? 1 : 0),
-                totalDraws: currentStats.totalDraws + (gameDraw ? 1 : 0),
+                totalWins: currentStats.totalWins + (finalGameWon ? 1 : 0),
+                totalLosses: currentStats.totalLosses + (finalGameLost ? 1 : 0),
+                totalDraws: currentStats.totalDraws + (finalGameDraw ? 1 : 0),
                 lastUpdated: serverTimestamp()
             };
             
             // Calculate win rate based on complete games won
             updatedStats.winRate = Math.round((updatedStats.totalWins / updatedStats.gamesPlayed) * 100);
             
-            console.log("Updating stats with game outcome:", {
-                gameWon,
-                gameLost,
-                gameDraw,
-                updatedStats
+            console.log("Updating stats with final game outcome:", {
+                currentStats,
+                updatedStats,
+                change: {
+                    wins: updatedStats.totalWins - currentStats.totalWins,
+                    losses: updatedStats.totalLosses - currentStats.totalLosses,
+                    draws: updatedStats.totalDraws - currentStats.totalDraws
+                }
             });
             
             await set(userStatsRef, updatedStats);

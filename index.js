@@ -36,7 +36,7 @@ function updateStatsUI(stats) {
     
     // Get values from stats, ensuring we use complete game stats
     const gamesPlayed = stats.gamesPlayed || 0;
-    const totalWins = stats.totalWins || 0;  // This is now complete game wins
+    const totalWins = stats.totalWins || 0;  // This is complete game wins only
     const winRate = stats.winRate || 0;  // Using the pre-calculated win rate
     
     console.log("Processing stats for display:", {
@@ -71,6 +71,7 @@ onAuthStateChanged(auth, (user) => {
         console.log('User is signed in:', user.uid);
         if (userWelcome) {
             userWelcome.textContent = `Welcome, ${user.displayName || user.email}!`;
+            userWelcome.style.color = '#000000'; // Make welcome message black
         }
         
         // Set up real-time listener for user stats
