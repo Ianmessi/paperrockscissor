@@ -986,7 +986,7 @@ body.about-page {
     font-size: 16px;
     transition: all 0.3s ease;
     outline: none;
-    background: rgba(255, 255, 255, 0.9);
+    background: #ffffff;
 }
 
 .form-group input:focus {
@@ -1241,7 +1241,7 @@ body.about-page {
     background: none;
     border: none;
     color: #e74c3c;
-        font-size: 14px;
+    font-size: 14px;
     cursor: pointer;
     padding: 0;
     display: flex;
@@ -1573,7 +1573,7 @@ body.about-page {
     justify-content: space-around;
     align-items: center;
     margin: 20px 0;
-        padding: 10px;
+    padding: 10px;
     border-radius: 8px;
 }
 
@@ -2050,8 +2050,7 @@ body.about-page {
 
 /* Contact Form Styles */
 .contact-section {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 15px;
     padding: 2rem;
     margin-top: 2rem;
@@ -2059,9 +2058,10 @@ body.about-page {
 }
 
 .contact-section h2 {
-    color: #fff;
+    color: #2c3e50;
     margin-bottom: 1.5rem;
     text-align: center;
+    font-size: 1.8em;
 }
 
 .contact-form {
@@ -2077,7 +2077,7 @@ body.about-page {
 }
 
 .form-group label {
-    color: #fff;
+    color: #2c3e50;
     font-size: 1rem;
     font-weight: 500;
 }
@@ -2085,10 +2085,10 @@ body.about-page {
 .form-group input,
 .form-group textarea {
     padding: 0.8rem;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid #e1e1e1;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
+    background: #ffffff;
+    color: #2c3e50;
     font-size: 1rem;
     transition: all 0.3s ease;
 }
@@ -2097,7 +2097,7 @@ body.about-page {
 .form-group textarea:focus {
     outline: none;
     border-color: #4CAF50;
-    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
 .form-group textarea {
@@ -2121,6 +2121,7 @@ body.about-page {
 .submit-btn:hover {
     background: #45a049;
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
 }
 
 .submit-btn:active {
