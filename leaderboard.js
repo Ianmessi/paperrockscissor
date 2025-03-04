@@ -29,15 +29,16 @@ function createLeaderboardEntry(userData, rank, currentUserId) {
     // Add username
     const usernameSpan = document.createElement('span');
     usernameSpan.className = 'username';
-    usernameSpan.textContent = userData.username;
+    usernameSpan.textContent = userData.username || userData.email?.split('@')[0] || 'Anonymous';
     
     // Add stats
     const statsSpan = document.createElement('span');
     statsSpan.className = 'stats';
+    const stats = userData.stats || {};
     statsSpan.innerHTML = `
-        <span class="wins">Wins: ${userData.stats.totalWins}</span>
-        <span class="games">Games: ${userData.stats.gamesPlayed}</span>
-        <span class="win-rate">Win Rate: ${userData.stats.winRate}%</span>
+        <span class="wins">Wins: ${stats.totalWins || 0}</span>
+        <span class="games">Games: ${stats.gamesPlayed || 0}</span>
+        <span class="win-rate">Win Rate: ${stats.winRate || 0}%</span>
     `;
     
     entry.appendChild(rankSpan);
@@ -63,14 +64,19 @@ async function loadLeaderboard() {
         // Convert snapshot to array and sort by total wins
         const users = [];
         snapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
             users.push({
                 uid: childSnapshot.key,
-                ...childSnapshot.val()
+                ...userData
             });
         });
         
         // Sort by total wins (descending)
-        users.sort((a, b) => (b.stats?.totalWins || 0) - (a.stats?.totalWins || 0));
+        users.sort((a, b) => {
+            const winsA = (a.stats?.totalWins || 0);
+            const winsB = (b.stats?.totalWins || 0);
+            return winsB - winsA;
+        });
         
         // Get current user ID
         const currentUser = auth.currentUser;
