@@ -55,52 +55,65 @@ async function loadLeaderboard() {
         leaderboardList.innerHTML = '';
         
         console.log('Fetching users data...');
+        console.log('Current auth state:', auth.currentUser);
+        
         const usersRef = ref(database, 'users');
-        const snapshot = await get(usersRef);
+        console.log('Database reference:', usersRef);
         
-        if (!snapshot.exists()) {
-            console.log('No users found in database');
-            throw new Error('No users found');
-        }
-        
-        console.log('Users data received:', snapshot.val());
-        
-        // Convert snapshot to array and sort by total wins
-        const users = [];
-        snapshot.forEach((childSnapshot) => {
-            const userData = childSnapshot.val();
-            console.log('Processing user:', childSnapshot.key, userData);
-            users.push({
-                uid: childSnapshot.key,
-                ...userData
+        try {
+            const snapshot = await get(usersRef);
+            console.log('Snapshot received:', snapshot.exists());
+            
+            if (!snapshot.exists()) {
+                console.log('No users found in database');
+                throw new Error('No users found');
+            }
+            
+            console.log('Users data received:', snapshot.val());
+            
+            // Convert snapshot to array and sort by total wins
+            const users = [];
+            snapshot.forEach((childSnapshot) => {
+                const userData = childSnapshot.val();
+                console.log('Processing user:', childSnapshot.key, userData);
+                users.push({
+                    uid: childSnapshot.key,
+                    ...userData
+                });
             });
-        });
-        
-        console.log('Processed users array:', users);
-        
-        // Sort by total wins (descending)
-        users.sort((a, b) => {
-            const winsA = (a.stats?.totalWins || 0);
-            const winsB = (b.stats?.totalWins || 0);
-            return winsB - winsA;
-        });
-        
-        console.log('Sorted users:', users);
-        
-        // Get current user ID
-        const currentUser = auth.currentUser;
-        console.log('Current user:', currentUser?.uid);
-        
-        // Display top players
-        users.forEach((user, index) => {
-            const rank = index + 1;
-            const entry = createLeaderboardEntry(user, rank, currentUser?.uid);
-            leaderboardList.appendChild(entry);
-        });
+            
+            console.log('Processed users array:', users);
+            
+            // Sort by total wins (descending)
+            users.sort((a, b) => {
+                const winsA = (a.stats?.totalWins || 0);
+                const winsB = (b.stats?.totalWins || 0);
+                return winsB - winsA;
+            });
+            
+            console.log('Sorted users:', users);
+            
+            // Get current user ID
+            const currentUser = auth.currentUser;
+            console.log('Current user:', currentUser?.uid);
+            
+            // Display top players
+            users.forEach((user, index) => {
+                const rank = index + 1;
+                const entry = createLeaderboardEntry(user, rank, currentUser?.uid);
+                leaderboardList.appendChild(entry);
+            });
+            
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            console.error('Error code:', dbError.code);
+            console.error('Error message:', dbError.message);
+            throw dbError;
+        }
         
     } catch (error) {
         console.error('Error loading leaderboard:', error);
-        errorContainer.textContent = 'Error loading leaderboard. Please try again later.';
+        errorContainer.textContent = `Error loading leaderboard: ${error.message}. Please try again later.`;
         errorContainer.style.display = 'block';
     } finally {
         loadingSpinner.style.display = 'none';
