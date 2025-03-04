@@ -54,22 +54,29 @@ async function loadLeaderboard() {
         errorContainer.style.display = 'none';
         leaderboardList.innerHTML = '';
         
+        console.log('Fetching users data...');
         const usersRef = ref(database, 'users');
         const snapshot = await get(usersRef);
         
         if (!snapshot.exists()) {
+            console.log('No users found in database');
             throw new Error('No users found');
         }
+        
+        console.log('Users data received:', snapshot.val());
         
         // Convert snapshot to array and sort by total wins
         const users = [];
         snapshot.forEach((childSnapshot) => {
             const userData = childSnapshot.val();
+            console.log('Processing user:', childSnapshot.key, userData);
             users.push({
                 uid: childSnapshot.key,
                 ...userData
             });
         });
+        
+        console.log('Processed users array:', users);
         
         // Sort by total wins (descending)
         users.sort((a, b) => {
@@ -78,8 +85,11 @@ async function loadLeaderboard() {
             return winsB - winsA;
         });
         
+        console.log('Sorted users:', users);
+        
         // Get current user ID
         const currentUser = auth.currentUser;
+        console.log('Current user:', currentUser?.uid);
         
         // Display top players
         users.forEach((user, index) => {
