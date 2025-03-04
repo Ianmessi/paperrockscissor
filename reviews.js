@@ -2,16 +2,56 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const database = getDatabase(app);
 let currentUser = null;
 
 // Define global functions for HTML access
-window.submitReview = submitReview;
+window.submitReview = async function() {
+  if (!currentUser) {
+    alert('Please sign in to submit a review');
+    return;
+  }
+
+  const rating = document.getElementById('rating').value;
+  const comment = document.getElementById('comment').value;
+
+  if (!rating || !comment) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  try {
+    const reviewsRef = ref(database, 'reviews');
+    const newReviewRef = push(reviewsRef);
+    
+    await set(newReviewRef, {
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      rating: parseInt(rating),
+      comment: comment,
+      timestamp: Date.now()
+    });
+
+    // Clear form
+    document.getElementById('rating').value = '';
+    document.getElementById('comment').value = '';
+    
+    // Reload reviews
+    loadReviews();
+    
+    alert('Review submitted successfully!');
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    alert('Error submitting review. Please try again.');
+  }
+};
 window.showAllReviews = showAllReviews;
 window.deleteReview = deleteReview;
 
@@ -20,61 +60,17 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user) {
     console.log("User is signed in:", user.email);
-    document.getElementById('userWelcome').textContent = `Welcome, ${user.email}!`;
+    document.getElementById('userWelcome').textContent = `Welcome, ${user.email}`;
+    document.getElementById('authButton').style.display = 'none';
     document.getElementById('reviewForm').style.display = 'block';
+    loadReviews();
   } else {
     console.log("User is signed out");
     document.getElementById('userWelcome').textContent = 'Please sign in to leave a review';
+    document.getElementById('authButton').style.display = 'block';
     document.getElementById('reviewForm').style.display = 'none';
   }
 });
-
-// Function to submit a review
-function submitReview() {
-  if (!currentUser) {
-    alert('Please sign in to submit a review');
-    return;
-  }
-
-  const reviewText = document.getElementById('reviewText').value.trim();
-  const rating = document.getElementById('rating').value;
-
-  if (!reviewText) {
-    alert('Please enter a review');
-    return;
-  }
-
-  if (!rating) {
-    alert('Please select a rating');
-    return;
-  }
-
-  const reviewData = {
-    userId: currentUser.uid,
-    userEmail: currentUser.email,
-    text: reviewText,
-    rating: parseInt(rating),
-    timestamp: new Date()
-  };
-
-  addDoc(collection(db, "reviews"), reviewData)
-    .then(() => {
-      document.getElementById('reviewText').value = '';
-      document.getElementById('rating').value = '';
-      alert('Review submitted successfully!');
-      
-      // Show the reviews list after submission
-      document.getElementById('reviewsList').classList.add('show');
-      document.querySelector('.show-reviews-btn').innerHTML = '<i class="fas fa-comments"></i> Hide Reviews';
-      
-      // Make sure reviews are loaded
-      loadReviews();
-    })
-    .catch((error) => {
-      console.error("Error adding review: ", error);
-      alert('Failed to submit review. Please try again.');
-    });
-}
 
 // Function to show/hide all reviews
 function showAllReviews() {
@@ -93,105 +89,70 @@ function showAllReviews() {
 
 // Function to load reviews
 function loadReviews() {
-  const reviewsList = document.getElementById('reviewsList');
-  
-  // Clear existing reviews
-  reviewsList.innerHTML = '<div class="loading">Loading reviews...</div>';
-  
-  // Create a query to order reviews by timestamp
-  const q = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
-  
-  // Set up real-time listener
-  onSnapshot(q, (querySnapshot) => {
+  const reviewsRef = ref(database, 'reviews');
+  onValue(reviewsRef, (snapshot) => {
+    const reviewsList = document.getElementById('reviewsList');
     reviewsList.innerHTML = '';
-    if (querySnapshot.empty) {
-      reviewsList.innerHTML = '<div class="no-reviews">No reviews yet. Be the first to leave a review!</div>';
-      return;
-    }
     
-    querySnapshot.forEach((doc) => {
-      const review = doc.data();
-      const reviewElement = createReviewElement(doc.id, review);
+    const reviews = [];
+    snapshot.forEach((childSnapshot) => {
+      reviews.push({
+        id: childSnapshot.key,
+        ...childSnapshot.val()
+      });
+    });
+    
+    // Sort reviews by timestamp (newest first)
+    reviews.sort((a, b) => b.timestamp - a.timestamp);
+    
+    reviews.forEach(review => {
+      const reviewElement = createReviewElement(review);
       reviewsList.appendChild(reviewElement);
     });
-  }, (error) => {
-    console.error("Error loading reviews: ", error);
-    reviewsList.innerHTML = '<div class="error">Error loading reviews. Please try again later.</div>';
   });
 }
 
 // Function to create a review element
-function createReviewElement(docId, review) {
+function createReviewElement(review) {
   const div = document.createElement('div');
   div.className = 'review-item';
   
-  // Create star rating display
-  const stars = '⭐'.repeat(review.rating);
-  
-  // Format date and time
-  const date = review.timestamp.toDate();
-  const formattedDate = date.toLocaleDateString();
-  const formattedTime = date.toLocaleTimeString();
-  
-  // Determine if the current user is the author of this review
-  const isAuthor = currentUser && review.userId === currentUser.uid;
+  const date = new Date(review.timestamp).toLocaleDateString();
   
   div.innerHTML = `
     <div class="review-header">
       <div class="reviewer-info">
-        <div class="reviewer-avatar">
-          ${review.userEmail.charAt(0).toUpperCase()}
-        </div>
+        <div class="reviewer-avatar">${review.userEmail[0].toUpperCase()}</div>
         <div class="reviewer-details">
           <div class="reviewer-name">${review.userEmail}</div>
-          <div class="review-date">${formattedDate} at ${formattedTime}</div>
-          <div class="rating">${stars}</div>
+          <div class="review-date">${date}</div>
         </div>
       </div>
-      ${isAuthor ? `
-        <div class="review-actions">
-          <button class="delete-review" onclick="deleteReview('${docId}')">
-            <i class="fas fa-trash"></i> Delete
-          </button>
-        </div>
-      ` : ''}
+      ${currentUser && currentUser.uid === review.userId ? 
+        `<button onclick="deleteReview('${review.id}')" class="delete-review">
+          <i class="fas fa-trash"></i> Delete
+        </button>` : ''}
     </div>
-    <div class="review-content">${review.text}</div>
+    <div class="rating">
+      ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+    </div>
+    <div class="review-content">${review.comment}</div>
   `;
   
   return div;
 }
 
 // Function to delete a review
-async function deleteReview(docId) {
-  if (!currentUser) {
-    alert('You must be signed in to delete a review');
-    return;
-  }
-  
-  if (!confirm('Are you sure you want to delete this review?')) {
-    return;
-  }
+async function deleteReview(reviewId) {
+  if (!currentUser) return;
   
   try {
-    const reviewRef = doc(db, "reviews", docId);
-    const reviewSnap = await getDoc(reviewRef);
-    
-    if (!reviewSnap.exists()) {
-      alert('Review not found');
-      return;
-    }
-    
-    if (reviewSnap.data().userId !== currentUser.uid) {
-      alert('You can only delete your own reviews');
-      return;
-    }
-    
-    await deleteDoc(reviewRef);
-    alert('Review deleted successfully');
+    const reviewRef = ref(database, `reviews/${reviewId}`);
+    await remove(reviewRef);
+    alert('Review deleted successfully!');
   } catch (error) {
-    console.error("Error deleting review: ", error);
-    alert('Failed to delete review. Please try again.');
+    console.error('Error deleting review:', error);
+    alert('Error deleting review. Please try again.');
   }
 }
 

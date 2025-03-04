@@ -29,16 +29,15 @@ function createLeaderboardEntry(userData, rank, currentUserId) {
     // Add username
     const usernameSpan = document.createElement('span');
     usernameSpan.className = 'username';
-    usernameSpan.textContent = userData.username || userData.email?.split('@')[0] || 'Anonymous';
+    usernameSpan.textContent = userData.username;
     
     // Add stats
     const statsSpan = document.createElement('span');
     statsSpan.className = 'stats';
-    const stats = userData.stats || {};
     statsSpan.innerHTML = `
-        <span class="wins">Wins: ${stats.totalWins || 0}</span>
-        <span class="games">Games: ${stats.gamesPlayed || 0}</span>
-        <span class="win-rate">Win Rate: ${stats.winRate || 0}%</span>
+        <span class="wins">Wins: ${userData.stats.totalWins}</span>
+        <span class="games">Games: ${userData.stats.gamesPlayed}</span>
+        <span class="win-rate">Win Rate: ${userData.stats.winRate}%</span>
     `;
     
     entry.appendChild(rankSpan);
@@ -54,66 +53,38 @@ async function loadLeaderboard() {
         errorContainer.style.display = 'none';
         leaderboardList.innerHTML = '';
         
-        console.log('Fetching users data...');
-        console.log('Current auth state:', auth.currentUser);
-        
         const usersRef = ref(database, 'users');
-        console.log('Database reference:', usersRef);
+        const snapshot = await get(usersRef);
         
-        try {
-            const snapshot = await get(usersRef);
-            console.log('Snapshot received:', snapshot.exists());
-            
-            if (!snapshot.exists()) {
-                console.log('No users found in database');
-                throw new Error('No users found');
-            }
-            
-            console.log('Users data received:', snapshot.val());
-            
-            // Convert snapshot to array and sort by total wins
-            const users = [];
-            snapshot.forEach((childSnapshot) => {
-                const userData = childSnapshot.val();
-                console.log('Processing user:', childSnapshot.key, userData);
-                users.push({
-                    uid: childSnapshot.key,
-                    ...userData
-                });
-            });
-            
-            console.log('Processed users array:', users);
-            
-            // Sort by total wins (descending)
-            users.sort((a, b) => {
-                const winsA = (a.stats?.totalWins || 0);
-                const winsB = (b.stats?.totalWins || 0);
-                return winsB - winsA;
-            });
-            
-            console.log('Sorted users:', users);
-            
-            // Get current user ID
-            const currentUser = auth.currentUser;
-            console.log('Current user:', currentUser?.uid);
-            
-            // Display top players
-            users.forEach((user, index) => {
-                const rank = index + 1;
-                const entry = createLeaderboardEntry(user, rank, currentUser?.uid);
-                leaderboardList.appendChild(entry);
-            });
-            
-        } catch (dbError) {
-            console.error('Database error:', dbError);
-            console.error('Error code:', dbError.code);
-            console.error('Error message:', dbError.message);
-            throw dbError;
+        if (!snapshot.exists()) {
+            throw new Error('No users found');
         }
+        
+        // Convert snapshot to array and sort by total wins
+        const users = [];
+        snapshot.forEach((childSnapshot) => {
+            users.push({
+                uid: childSnapshot.key,
+                ...childSnapshot.val()
+            });
+        });
+        
+        // Sort by total wins (descending)
+        users.sort((a, b) => (b.stats?.totalWins || 0) - (a.stats?.totalWins || 0));
+        
+        // Get current user ID
+        const currentUser = auth.currentUser;
+        
+        // Display top players
+        users.forEach((user, index) => {
+            const rank = index + 1;
+            const entry = createLeaderboardEntry(user, rank, currentUser?.uid);
+            leaderboardList.appendChild(entry);
+        });
         
     } catch (error) {
         console.error('Error loading leaderboard:', error);
-        errorContainer.textContent = `Error loading leaderboard: ${error.message}. Please try again later.`;
+        errorContainer.textContent = 'Error loading leaderboard. Please try again later.';
         errorContainer.style.display = 'block';
     } finally {
         loadingSpinner.style.display = 'none';
