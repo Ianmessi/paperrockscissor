@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, push, set, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -59,22 +59,12 @@ window.deleteReview = deleteReview;
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user) {
-    // Get username from database
-    const userRef = ref(database, `users/${user.uid}`);
-    get(userRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        const userData = snapshot.val();
-        document.getElementById('userWelcome').textContent = `Welcome, ${userData.username}!`;
-      } else {
-        document.getElementById('userWelcome').textContent = `Welcome, ${user.email}!`;
-      }
-    });
+    document.getElementById('userWelcome').style.display = 'none';
     document.getElementById('authButton').style.display = 'none';
     document.getElementById('reviewForm').style.display = 'block';
     loadReviews();
   } else {
-    console.log("User is signed out");
-    document.getElementById('userWelcome').textContent = 'Please sign in to leave a review';
+    document.getElementById('userWelcome').style.display = 'none';
     document.getElementById('authButton').style.display = 'block';
     document.getElementById('reviewForm').style.display = 'none';
   }
@@ -127,12 +117,15 @@ function createReviewElement(review) {
   
   const date = new Date(review.timestamp).toLocaleDateString();
   
+  // Get username from email (everything before @)
+  const username = review.userEmail.split('@')[0];
+  
   div.innerHTML = `
     <div class="review-header">
       <div class="reviewer-info">
-        <div class="reviewer-avatar">${review.userEmail[0].toUpperCase()}</div>
+        <div class="reviewer-avatar">${username[0].toUpperCase()}</div>
         <div class="reviewer-details">
-          <div class="reviewer-name">${review.userEmail}</div>
+          <div class="reviewer-name">${username}</div>
           <div class="review-date">${date}</div>
         </div>
       </div>
