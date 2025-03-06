@@ -12,6 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDatabase, ref, set, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
+import { signUp, signIn, signOutUser, deleteUserAccount } from './auth.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -20,8 +21,8 @@ const database = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 
 // DOM Elements
-const loginForm = document.getElementById('loginForm');
-const signupForm = document.getElementById('signupForm');
+const loginForm = document.getElementById('login-form');
+const signupForm = document.getElementById('signup-form');
 const showSignupLink = document.getElementById('showSignup');
 const showLoginLink = document.getElementById('showLogin');
 const loginButton = document.getElementById('loginButton');
@@ -31,6 +32,9 @@ const googleSignupButton = document.getElementById('googleSignupButton');
 const errorMessage = document.getElementById('errorMessage');
 const signupErrorMessage = document.getElementById('signupErrorMessage');
 const forgotPasswordLink = document.getElementById('forgotPassword');
+const loginError = document.getElementById('login-error');
+const signupError = document.getElementById('signup-error');
+const toggleForms = document.querySelectorAll('.toggle-form');
 
 // Check if user is already logged in
 onAuthStateChanged(auth, (user) => {
@@ -41,22 +45,14 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // Toggle between login and signup forms
-showSignupLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'block';
-    errorMessage.textContent = '';
-    signupErrorMessage.textContent = '';
-    document.getElementById('signupEmail').focus();
-});
-
-showLoginLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    signupForm.style.display = 'none';
-    loginForm.style.display = 'block';
-    errorMessage.textContent = '';
-    signupErrorMessage.textContent = '';
-    document.getElementById('email').focus();
+toggleForms.forEach(toggle => {
+    toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginForm.classList.toggle('hidden');
+        signupForm.classList.toggle('hidden');
+        loginError.textContent = '';
+        signupError.textContent = '';
+    });
 });
 
 // Login function
@@ -329,3 +325,46 @@ forgotPasswordLink.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('email').focus();
 });
+
+// Handle login
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    const result = await signIn(email, password);
+    if (result.success) {
+        window.location.href = 'index.html';
+    } else {
+        loginError.textContent = result.error;
+    }
+});
+
+// Handle signup
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+
+    const result = await signUp(email, password);
+    if (result.success) {
+        window.location.href = 'index.html';
+    } else {
+        signupError.textContent = result.error;
+    }
+});
+
+// Handle account deletion (if you have a delete account button)
+const deleteAccountBtn = document.getElementById('delete-account');
+if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            const result = await deleteUserAccount();
+            if (result.success) {
+                window.location.href = 'login.html';
+            } else {
+                alert(result.error);
+            }
+        }
+    });
+}

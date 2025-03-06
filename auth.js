@@ -1,5 +1,13 @@
-// Initialize Firebase Auth
-const auth = firebase.auth();
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getDatabase, ref, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import firebaseConfig from './firebase-config.js';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
@@ -25,6 +33,99 @@ showLoginLink.addEventListener('click', (e) => {
     errorMessage.style.display = 'none';
 });
 
+// Function to create user data in Realtime Database
+async function createUserData(user) {
+  try {
+    const userRef = ref(database, `users/${user.uid}`);
+    await set(userRef, {
+      email: user.email,
+      totalGamesPlayed: 0,
+      totalWins: 0,
+      totalLosses: 0,
+      totalDraws: 0,
+      winRate: 0,
+      createdAt: Date.now()
+    });
+    console.log('User data created successfully');
+  } catch (error) {
+    console.error('Error creating user data:', error);
+  }
+}
+
+// Function to delete user data from Realtime Database
+async function deleteUserData(uid) {
+  try {
+    const userRef = ref(database, `users/${uid}`);
+    await remove(userRef);
+    console.log('User data deleted successfully');
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+  }
+}
+
+// Sign up function
+export async function signUp(email, password) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await createUserData(userCredential.user);
+    return { success: true, user: userCredential.user };
+  } catch (error) {
+    console.error('Error signing up:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Sign in function
+export async function signIn(email, password) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return { success: true, user: userCredential.user };
+  } catch (error) {
+    console.error('Error signing in:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Sign out function
+export async function signOutUser() {
+  try {
+    await signOut(auth);
+    return { success: true };
+  } catch (error) {
+    console.error('Error signing out:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Listen for auth state changes
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in
+    console.log('User is signed in:', user.email);
+  } else {
+    // User is signed out
+    console.log('User is signed out');
+  }
+});
+
+// Function to delete user account
+export async function deleteUserAccount() {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      // First delete user data from Realtime Database
+      await deleteUserData(user.uid);
+      // Then delete the user account
+      await user.delete();
+      return { success: true };
+    }
+    return { success: false, error: 'No user logged in' };
+  } catch (error) {
+    console.error('Error deleting user account:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // Login function
 function login() {
     const email = document.getElementById('email').value;
@@ -34,45 +135,6 @@ function login() {
     auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
             // Successful login
-            window.location.href = 'index.html';
-        })
-        .catch((error) => {
-            errorMessage.textContent = error.message;
-        });
-}
-
-// Sign up function
-function signup() {
-    const username = document.getElementById('signup-username').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const errorMessage = document.getElementById('signup-error-message');
-
-    auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // Update profile with username
-            return userCredential.user.updateProfile({
-                displayName: username
-            });
-        })
-        .then(() => {
-            // Create user record in database
-            const user = auth.currentUser;
-            return firebase.database().ref('users/' + user.uid).set({
-                username: username,
-                email: email,
-                stats: {
-                    gamesPlayed: 0,
-                    totalWins: 0,
-                    totalLosses: 0,
-                    totalDraws: 0,
-                    winRate: 0,
-                    lastUpdated: firebase.database.ServerValue.TIMESTAMP
-                }
-            });
-        })
-        .then(() => {
-            // Redirect to home page
             window.location.href = 'index.html';
         })
         .catch((error) => {
