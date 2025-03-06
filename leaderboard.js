@@ -91,13 +91,16 @@ function loadLeaderboard() {
             const users = [];
             snapshot.forEach((childSnapshot) => {
                 const userData = childSnapshot.val();
+                console.log('User data:', userData); // Debug log
                 if (userData.stats) {
-                    // Extract username from email
-                    const email = userData.email || '';
+                    // Get email from the correct location in userData
+                    const email = userData.email || childSnapshot.key || '';
+                    console.log('Email found:', email); // Debug log
                     const username = email.split('@')[0];
+                    console.log('Username extracted:', username); // Debug log
                     
                     users.push({
-                        username: username,
+                        username: username || 'Unknown',
                         games: userData.stats.gamesPlayed || 0,
                         wins: userData.stats.totalWins || 0,
                         winRate: userData.stats.gamesPlayed ? 
@@ -118,7 +121,7 @@ function loadLeaderboard() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${user.username || 'Unknown'}</td>
+                    <td>${user.username}</td>
                     <td>${user.wins}</td>
                     <td>${user.games}</td>
                     <td>${user.winRate}%</td>
