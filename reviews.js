@@ -1,6 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, getDoc, query, orderBy, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
@@ -31,14 +31,9 @@ window.submitReview = async function() {
     const reviewsRef = ref(database, 'reviews');
     const newReviewRef = push(reviewsRef);
     
-    // Get username from users node
-    const userRef = ref(database, `users/${currentUser.uid}`);
-    const userSnap = await get(userRef);
-    const userData = userSnap.val();
-    
     await set(newReviewRef, {
       userId: currentUser.uid,
-      username: userData.username || 'Anonymous User',
+      userEmail: currentUser.email,
       rating: parseInt(rating),
       comment: comment,
       timestamp: Date.now()
@@ -124,12 +119,15 @@ function createReviewElement(review) {
   
   const date = new Date(review.timestamp).toLocaleDateString();
   
+  // Extract username from email (everything before @)
+  const username = review.userEmail.split('@')[0];
+  
   div.innerHTML = `
     <div class="review-header">
       <div class="reviewer-info">
-        <div class="reviewer-avatar">${review.username ? review.username[0].toUpperCase() : 'U'}</div>
+        <div class="reviewer-avatar">${username[0].toUpperCase()}</div>
         <div class="reviewer-details">
-          <div class="reviewer-name">${review.username || 'Anonymous User'}</div>
+          <div class="reviewer-name">${username}</div>
           <div class="review-date">${date}</div>
         </div>
       </div>

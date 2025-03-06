@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -80,40 +80,23 @@ function updateStatsUI(stats) {
     }
 }
 
-// Auth state observer
+// Update stats when user is authenticated
 onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    const authButton = document.getElementById('authButton');
-    const userProfile = document.getElementById('userProfile');
-    const userName = document.getElementById('userName');
-    const userEmail = document.getElementById('userEmail');
-
+    console.log("Auth state changed:", user ? `User logged in: ${user.email}` : "User logged out");
+    
     if (user) {
-        // Get user data from database
-        const userRef = ref(database, `users/${user.uid}`);
-        get(userRef).then((snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                userName.textContent = userData.username || 'Anonymous User';
-                userEmail.textContent = user.email;
-            }
-        });
-
-        authButton.style.display = 'none';
-        userProfile.style.display = 'flex';
-        document.getElementById('gameContainer').style.display = 'block';
-        document.getElementById('loginPrompt').style.display = 'none';
-        loadUserStats();
+        console.log('User is signed in:', user.uid);
+        // Extract username from email
+        const username = user.email.split('@')[0];
+        document.getElementById('userWelcome').textContent = `Welcome, ${username}!`;
+        document.getElementById('authButton').style.display = 'none';
+        document.getElementById('userSection').style.display = 'block';
+        loadUserStats(user.uid);
     } else {
-        authButton.style.display = 'block';
-        userProfile.style.display = 'none';
-        document.getElementById('gameContainer').style.display = 'none';
-        document.getElementById('loginPrompt').style.display = 'block';
+        console.log('No user signed in');
+        document.getElementById('userWelcome').textContent = 'Welcome! Please sign in to play';
+        document.getElementById('authButton').style.display = 'block';
+        document.getElementById('userSection').style.display = 'none';
+        window.location.href = 'login.html';
     }
-});
-
-// Profile click handler
-document.getElementById('userProfile').addEventListener('click', function() {
-    const userEmail = document.getElementById('userEmail');
-    userEmail.style.display = userEmail.style.display === 'none' ? 'block' : 'none';
 });
