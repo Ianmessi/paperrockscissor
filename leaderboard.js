@@ -48,8 +48,6 @@ function createLeaderboardEntry(userData, rank, currentUserId) {
 }
 
 function loadLeaderboard() {
-    const currentUser = auth.currentUser;
-    
     // Clear previous content and show loading
     leaderboardList.innerHTML = '';
     loadingSpinner.style.display = 'block';
@@ -64,7 +62,7 @@ function loadLeaderboard() {
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = `
         <th>Rank</th>
-        <th>Name</th>
+        <th>Username</th>
         <th>Wins</th>
         <th>Games</th>
         <th>Win Rate</th>
@@ -93,12 +91,12 @@ function loadLeaderboard() {
             const users = [];
             snapshot.forEach((childSnapshot) => {
                 const userData = childSnapshot.val();
-                const userId = childSnapshot.key;
-                if (userData.stats && userData.email) {
-                    // Get username from email (everything before @)
-                    const username = userData.email.split('@')[0];
+                if (userData.stats) {
+                    // Extract username from email
+                    const email = userData.email || '';
+                    const username = email.split('@')[0];
+                    
                     users.push({
-                        id: userId,
                         username: username,
                         games: userData.stats.gamesPlayed || 0,
                         wins: userData.stats.totalWins || 0,
@@ -118,15 +116,9 @@ function loadLeaderboard() {
             // Add users to table
             users.forEach((user, index) => {
                 const row = document.createElement('tr');
-                
-                // Highlight current user's row
-                if (currentUser && user.id === currentUser.uid) {
-                    row.classList.add('current-user');
-                }
-                
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${user.username}</td>
+                    <td>${user.username || 'Unknown'}</td>
                     <td>${user.wins}</td>
                     <td>${user.games}</td>
                     <td>${user.winRate}%</td>
