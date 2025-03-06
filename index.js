@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -80,34 +80,40 @@ function updateStatsUI(stats) {
     }
 }
 
-// Update stats when user is authenticated
+// Auth state observer
 onAuthStateChanged(auth, (user) => {
-    console.log("Auth state changed:", user ? `User logged in: ${user.email}` : "User logged out");
-    
+    currentUser = user;
+    const authButton = document.getElementById('authButton');
+    const userProfile = document.getElementById('userProfile');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+
     if (user) {
-        console.log('User is signed in:', user.uid);
-        if (userWelcome) {
-            userWelcome.textContent = `Welcome, ${user.displayName || user.email}!`;
-            userWelcome.style.color = '#000000'; // Make welcome message black
-        }
-        
-        // Set up real-time listener for user stats
-        const userStatsRef = ref(database, 'users/' + user.uid + '/stats');
-        onValue(userStatsRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const stats = snapshot.val();
-                console.log('Received user stats:', stats);
-                updateStatsUI(stats);
-            } else {
-                console.log('No stats found for user');
-                updateStatsUI(null);
+        // Get user data from database
+        const userRef = ref(database, `users/${user.uid}`);
+        get(userRef).then((snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+                userName.textContent = userData.username || 'Anonymous User';
+                userEmail.textContent = user.email;
             }
-        }, (error) => {
-            console.error('Error loading stats:', error);
-            updateStatsUI(null);
         });
+
+        authButton.style.display = 'none';
+        userProfile.style.display = 'flex';
+        document.getElementById('gameContainer').style.display = 'block';
+        document.getElementById('loginPrompt').style.display = 'none';
+        loadUserStats();
     } else {
-        console.log('No user signed in');
-        window.location.href = 'login.html';
+        authButton.style.display = 'block';
+        userProfile.style.display = 'none';
+        document.getElementById('gameContainer').style.display = 'none';
+        document.getElementById('loginPrompt').style.display = 'block';
     }
+});
+
+// Profile click handler
+document.getElementById('userProfile').addEventListener('click', function() {
+    const userEmail = document.getElementById('userEmail');
+    userEmail.style.display = userEmail.style.display === 'none' ? 'block' : 'none';
 });

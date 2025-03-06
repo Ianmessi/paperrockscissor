@@ -2137,3 +2137,58 @@ body.about-page {
         width: 100%;
     }
 }
+
+.review-item .rating {
+    color: #FFD700;  /* Gold color for stars */
+    font-size: 1.2em;
+    margin: 0.5rem 0;
+}
+
+/* User Profile Styles */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.user-profile:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #4CAF50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2em;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    color: white;
+}
+
+.profile-info span {
+    font-size: 0.9em;
+}
+
+#userEmail {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
