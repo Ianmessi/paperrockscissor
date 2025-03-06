@@ -119,15 +119,12 @@ function createReviewElement(review) {
   
   const date = new Date(review.timestamp).toLocaleDateString();
   
-  // Extract username from email (everything before @)
-  const username = review.userEmail.split('@')[0];
-  
   div.innerHTML = `
     <div class="review-header">
       <div class="reviewer-info">
-        <div class="reviewer-avatar">${username[0].toUpperCase()}</div>
+        <div class="reviewer-avatar">${review.userEmail[0].toUpperCase()}</div>
         <div class="reviewer-details">
-          <div class="reviewer-name">${username}</div>
+          <div class="reviewer-name">${review.userEmail}</div>
           <div class="review-date">${date}</div>
         </div>
       </div>

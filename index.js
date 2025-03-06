@@ -86,17 +86,28 @@ onAuthStateChanged(auth, (user) => {
     
     if (user) {
         console.log('User is signed in:', user.uid);
-        // Extract username from email
-        const username = user.email.split('@')[0];
-        document.getElementById('userWelcome').textContent = `Welcome, ${username}!`;
-        document.getElementById('authButton').style.display = 'none';
-        document.getElementById('userSection').style.display = 'block';
-        loadUserStats(user.uid);
+        if (userWelcome) {
+            userWelcome.textContent = `Welcome, ${user.displayName || user.email}!`;
+            userWelcome.style.color = '#000000'; // Make welcome message black
+        }
+        
+        // Set up real-time listener for user stats
+        const userStatsRef = ref(database, 'users/' + user.uid + '/stats');
+        onValue(userStatsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const stats = snapshot.val();
+                console.log('Received user stats:', stats);
+                updateStatsUI(stats);
+            } else {
+                console.log('No stats found for user');
+                updateStatsUI(null);
+            }
+        }, (error) => {
+            console.error('Error loading stats:', error);
+            updateStatsUI(null);
+        });
     } else {
         console.log('No user signed in');
-        document.getElementById('userWelcome').textContent = 'Welcome! Please sign in to play';
-        document.getElementById('authButton').style.display = 'block';
-        document.getElementById('userSection').style.display = 'none';
         window.location.href = 'login.html';
     }
 });

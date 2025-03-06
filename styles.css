@@ -865,9 +865,7 @@ body.about-page {
 }
 
 .rating {
-    color: #FFD700;  /* Gold color for stars */
-    font-size: 1.2em;
-    margin: 0.5rem 0;
+    margin-top: 5px;
 }
 
 .review-content {
