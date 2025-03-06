@@ -98,14 +98,16 @@ export async function signOutUser() {
 }
 
 // Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // User is signed in
-    console.log('User is signed in:', user.email);
-  } else {
-    // User is signed out
-    console.log('User is signed out');
-  }
+document.addEventListener('DOMContentLoaded', () => {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in
+            console.log('User is signed in:', user.email);
+        } else {
+            // User is signed out
+            console.log('User is signed out');
+        }
+    });
 });
 
 // Function to delete user account
