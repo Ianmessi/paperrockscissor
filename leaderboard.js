@@ -48,10 +48,6 @@ function createLeaderboardEntry(userData, rank, currentUserId) {
 }
 
 function loadLeaderboard() {
-    const leaderboardList = document.getElementById('leaderboardList');
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const errorContainer = document.getElementById('errorContainer');
-
     // Clear previous content and show loading
     leaderboardList.innerHTML = '';
     loadingSpinner.style.display = 'block';
@@ -79,8 +75,9 @@ function loadLeaderboard() {
     table.appendChild(tbody);
     leaderboardList.appendChild(table);
 
-    // Get users data
-    firebase.database().ref('users').once('value')
+    // Get users data using the modular SDK
+    const usersRef = ref(database, 'users');
+    get(usersRef)
         .then((snapshot) => {
             loadingSpinner.style.display = 'none';
             
