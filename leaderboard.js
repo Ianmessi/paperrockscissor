@@ -47,48 +47,89 @@ function createLeaderboardEntry(userData, rank, currentUserId) {
     return entry;
 }
 
-async function loadLeaderboard() {
-    try {
-        loadingSpinner.style.display = 'block';
-        errorContainer.style.display = 'none';
-        leaderboardList.innerHTML = '';
-        
-        const usersRef = ref(database, 'users');
-        const snapshot = await get(usersRef);
-        
-        if (!snapshot.exists()) {
-            throw new Error('No users found');
-        }
-        
-        // Convert snapshot to array and sort by total wins
-        const users = [];
-        snapshot.forEach((childSnapshot) => {
-            users.push({
-                uid: childSnapshot.key,
-                ...childSnapshot.val()
+function loadLeaderboard() {
+    const leaderboardList = document.getElementById('leaderboardList');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const errorContainer = document.getElementById('errorContainer');
+
+    // Clear previous content and show loading
+    leaderboardList.innerHTML = '';
+    loadingSpinner.style.display = 'block';
+    errorContainer.style.display = 'none';
+
+    // Create table structure
+    const table = document.createElement('table');
+    table.className = 'leaderboard-table';
+    
+    // Add table header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = `
+        <th>Rank</th>
+        <th>Username</th>
+        <th>Wins</th>
+        <th>Games</th>
+        <th>Win Rate</th>
+    `;
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Add table body
+    const tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+    leaderboardList.appendChild(table);
+
+    // Get users data
+    firebase.database().ref('users').once('value')
+        .then((snapshot) => {
+            loadingSpinner.style.display = 'none';
+            
+            if (!snapshot.exists()) {
+                errorContainer.textContent = 'No leaderboard data available';
+                errorContainer.style.display = 'block';
+                return;
+            }
+
+            // Convert to array and sort by wins
+            const users = [];
+            snapshot.forEach((childSnapshot) => {
+                const userData = childSnapshot.val();
+                if (userData.stats) {
+                    users.push({
+                        username: userData.username,
+                        games: userData.stats.gamesPlayed || 0,
+                        wins: userData.stats.totalWins || 0,
+                        winRate: userData.stats.gamesPlayed ? 
+                            ((userData.stats.totalWins / userData.stats.gamesPlayed) * 100).toFixed(1) : 
+                            '0.0'
+                    });
+                }
             });
+
+            // Sort by wins (descending)
+            users.sort((a, b) => b.wins - a.wins);
+
+            // Clear existing rows
+            tbody.innerHTML = '';
+
+            // Add users to table
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.username || 'Unknown'}</td>
+                    <td>${user.wins}</td>
+                    <td>${user.games}</td>
+                    <td>${user.winRate}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch((error) => {
+            loadingSpinner.style.display = 'none';
+            errorContainer.textContent = 'Error loading leaderboard: ' + error.message;
+            errorContainer.style.display = 'block';
         });
-        
-        // Sort by total wins (descending)
-        users.sort((a, b) => (b.stats?.totalWins || 0) - (a.stats?.totalWins || 0));
-        
-        // Get current user ID
-        const currentUser = auth.currentUser;
-        
-        // Display top players
-        users.forEach((user, index) => {
-            const rank = index + 1;
-            const entry = createLeaderboardEntry(user, rank, currentUser?.uid);
-            leaderboardList.appendChild(entry);
-        });
-        
-    } catch (error) {
-        console.error('Error loading leaderboard:', error);
-        errorContainer.textContent = 'Error loading leaderboard. Please try again later.';
-        errorContainer.style.display = 'block';
-    } finally {
-        loadingSpinner.style.display = 'none';
-    }
 }
 
 // Load leaderboard when auth state changes

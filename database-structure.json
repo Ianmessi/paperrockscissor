@@ -1,0 +1,57 @@
+{
+  "users": {
+    "user123": {
+      "email": "user1@example.com",
+      "username": "Player1",
+      "stats": {
+        "gamesPlayed": 10,
+        "totalWins": 5,
+        "totalLosses": 3,
+        "totalDraws": 2,
+        "winRate": 50,
+        "lastUpdated": 1709758139000
+      }
+    },
+    "user456": {
+      "email": "user2@example.com",
+      "username": "Player2",
+      "stats": {
+        "gamesPlayed": 8,
+        "totalWins": 4,
+        "totalLosses": 3,
+        "totalDraws": 1,
+        "winRate": 50,
+        "lastUpdated": 1709758139000
+      }
+    }
+  },
+  "rooms": {
+    "room123": {
+      "createdBy": "user123",
+      "createdAt": 1709758139000,
+      "status": "waiting",
+      "players": {
+        "user123": {
+          "ready": true,
+          "choice": null
+        }
+      }
+    }
+  },
+  "reviews": {
+    "review123": {
+      "userId": "user123",
+      "username": "Player1",
+      "rating": 5,
+      "comment": "Great game! Really enjoyed playing.",
+      "timestamp": 1709758139000
+    },
+    "review456": {
+      "userId": "user456",
+      "username": "Player2",
+      "rating": 4,
+      "comment": "Fun and engaging. Would recommend!",
+      "timestamp": 1709758139000
+    }
+  }
+} 
