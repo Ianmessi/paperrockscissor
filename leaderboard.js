@@ -89,12 +89,15 @@ function loadLeaderboard() {
 
             // Convert to array and sort by wins
             const users = [];
+            const currentUser = auth.currentUser;
+            const currentUserEmail = currentUser ? currentUser.email : '';
+            
             snapshot.forEach((childSnapshot) => {
                 const userData = childSnapshot.val();
                 console.log('User data:', userData); // Debug log
                 if (userData.stats) {
-                    // Get email from the correct location in userData
-                    const email = userData.email || childSnapshot.key || '';
+                    // Use the current user's email if this is their entry
+                    const email = childSnapshot.key === currentUser?.uid ? currentUserEmail : userData.email || '';
                     console.log('Email found:', email); // Debug log
                     const username = email.split('@')[0];
                     console.log('Username extracted:', username); // Debug log
