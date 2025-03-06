@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
@@ -59,8 +59,16 @@ window.deleteReview = deleteReview;
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user) {
-    console.log("User is signed in:", user.email);
-    document.getElementById('userWelcome').textContent = `Welcome, ${user.email}`;
+    // Get username from database
+    const userRef = ref(database, `users/${user.uid}`);
+    get(userRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        document.getElementById('userWelcome').textContent = `Welcome, ${userData.username}!`;
+      } else {
+        document.getElementById('userWelcome').textContent = `Welcome, ${user.email}!`;
+      }
+    });
     document.getElementById('authButton').style.display = 'none';
     document.getElementById('reviewForm').style.display = 'block';
     loadReviews();
