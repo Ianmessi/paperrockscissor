@@ -1,6 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import firebaseConfig from './firebase-config.js';
 
@@ -106,15 +106,21 @@ async function cleanupDeletedUsers() {
     const cleanupPromises = [];
     snapshot.forEach((childSnapshot) => {
       const uid = childSnapshot.key;
-      // Check if user still exists in Authentication
-      auth.getUser(uid).catch(() => {
-        // User doesn't exist in Authentication, remove from Realtime Database
+      const userData = childSnapshot.val();
+      
+      // Check if user data is invalid or missing required fields
+      if (!userData || 
+          userData.totalGamesPlayed === undefined || 
+          userData.totalWins === undefined ||
+          !userData.email) {
         cleanupPromises.push(remove(ref(database, `users/${uid}`)));
-      });
+      }
     });
 
-    await Promise.all(cleanupPromises);
-    console.log('Cleanup completed');
+    if (cleanupPromises.length > 0) {
+      await Promise.all(cleanupPromises);
+      console.log('Cleanup completed');
+    }
   } catch (error) {
     console.error('Error during cleanup:', error);
   }
