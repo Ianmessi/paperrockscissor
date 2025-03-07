@@ -122,12 +122,15 @@ function loadLeaderboard() {
             // Add users to table
             users.forEach((user, index) => {
                 const row = document.createElement('tr');
+                const rank = index + 1;
+                const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+                
                 row.innerHTML = `
-                    <td>${index + 1}</td>
+                    <td>${rankDisplay}</td>
                     <td>${user.username}</td>
-                    <td>${user.wins}</td>
-                    <td>${user.games}</td>
-                    <td>${user.winRate}%</td>
+                    <td style="color: #4CAF50;">${user.wins}</td>
+                    <td style="color: #2196F3;">${user.games}</td>
+                    <td style="color: #FFD700;">${user.winRate}%</td>
                 `;
                 tbody.appendChild(row);
             });
