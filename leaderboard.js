@@ -113,8 +113,13 @@ function loadLeaderboard() {
                 }
             });
 
-            // Sort by wins (descending)
-            users.sort((a, b) => b.wins - a.wins);
+            // Sort by wins (descending) and then by win rate (descending) if wins are equal
+            users.sort((a, b) => {
+                if (b.wins !== a.wins) {
+                    return b.wins - a.wins;  // First sort by wins
+                }
+                return parseFloat(b.winRate) - parseFloat(a.winRate);  // If wins are equal, sort by win rate
+            });
 
             // Clear existing rows
             tbody.innerHTML = '';
