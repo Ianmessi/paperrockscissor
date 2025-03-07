@@ -2173,3 +2173,70 @@ body.about-page {
     text-align: center;
     width: 60px;
 }
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+    .leaderboard-table {
+        font-size: 14px;
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 8px;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+
+    .leaderboard-table th:first-child,
+    .leaderboard-table td:first-child {
+        min-width: 40px;
+    }
+
+    .leaderboard-table th:nth-child(2),
+    .leaderboard-table td:nth-child(2) {
+        min-width: 100px;
+    }
+
+    .leaderboard-container {
+        padding: 10px;
+        width: 95%;
+        margin: 10px auto;
+    }
+
+    .leaderboard-container h1 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .navigation {
+        padding: 10px;
+    }
+
+    .back-button {
+        font-size: 14px;
+        padding: 8px 15px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .leaderboard-table {
+        font-size: 12px;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 6px;
+    }
+
+    .leaderboard-container h1 {
+        font-size: 20px;
+    }
+
+    .back-button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}

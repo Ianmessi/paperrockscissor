@@ -149,12 +149,10 @@ function signup() {
             }).then(() => {
                 console.log("Display name set:", username);
                 
-                // Create user record in database with initial stats
+                // Create user record in database
                 return set(ref(database, 'users/' + user.uid), {
-                    email: user.email,
                     username: username,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString(),
+                    email: email,
                     stats: {
                         gamesPlayed: 0,
                         totalWins: 0,

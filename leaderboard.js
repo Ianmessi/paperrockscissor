@@ -1,6 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, getUsers } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import firebaseConfig from './firebase-config.js';
 
@@ -90,14 +90,13 @@ function loadLeaderboard() {
             // Convert to array and sort by wins
             const users = [];
             const currentUser = auth.currentUser;
-            const currentUserEmail = currentUser ? currentUser.email : '';
             
             snapshot.forEach((childSnapshot) => {
                 const userData = childSnapshot.val();
                 console.log('User data:', userData); // Debug log
                 if (userData.stats) {
-                    // Use the current user's email if this is their entry
-                    const email = childSnapshot.key === currentUser?.uid ? currentUserEmail : userData.email || '';
+                    // Get the user's email from their data or use a default
+                    const email = userData.email || '';
                     console.log('Email found:', email); // Debug log
                     const username = email.split('@')[0];
                     console.log('Username extracted:', username); // Debug log
