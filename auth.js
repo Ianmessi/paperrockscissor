@@ -169,4 +169,31 @@ auth.onAuthStateChanged((user) => {
     if (user && window.location.pathname.includes('login.html')) {
         window.location.href = 'index.html';
     }
-}); 
+});
+
+function createUserData(user) {
+    const userRef = ref(database, `users/${user.uid}`);
+    return set(userRef, {
+        email: user.email,
+        stats: {
+            gamesPlayed: 0,
+            totalWins: 0,
+            totalLosses: 0,
+            totalDraws: 0,
+            winRate: 0
+        },
+        createdAt: serverTimestamp()
+    });
+}
+
+// When user signs up
+async function signUp(email, password) {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Store user data including email
+        await createUserData(userCredential.user);
+        return userCredential;
+    } catch (error) {
+        throw error;
+    }
+} 

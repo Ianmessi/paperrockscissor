@@ -96,11 +96,9 @@ function loadLeaderboard() {
                 const userData = childSnapshot.val();
                 console.log('User data:', userData); // Debug log
                 if (userData.stats) {
-                    // Use the current user's email if this is their entry
-                    const email = childSnapshot.key === currentUser?.uid ? currentUserEmail : userData.email || '';
-                    console.log('Email found:', email); // Debug log
+                    // Get email from user data
+                    const email = userData.email || '';
                     const username = email.split('@')[0];
-                    console.log('Username extracted:', username); // Debug log
                     
                     users.push({
                         username: username || 'Unknown',
