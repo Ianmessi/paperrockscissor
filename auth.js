@@ -1,5 +1,6 @@
 // Initialize Firebase Auth
 const auth = firebase.auth();
+const database = firebase.database();
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
@@ -50,15 +51,9 @@ function signup() {
 
     auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            // Update profile with username
-            return userCredential.user.updateProfile({
-                displayName: username
-            });
-        })
-        .then(() => {
+            const user = userCredential.user;
             // Create user record in database
-            const user = auth.currentUser;
-            return firebase.database().ref('users/' + user.uid).set({
+            return database.ref('users/' + user.uid).set({
                 username: username,
                 email: email,
                 stats: {
@@ -89,12 +84,12 @@ function signInWithGoogle() {
         .then((result) => {
             const user = result.user;
             // Check if user exists in database
-            return firebase.database().ref('users/' + user.uid).once('value')
+            return database.ref('users/' + user.uid).once('value')
                 .then((snapshot) => {
                     if (!snapshot.exists()) {
                         // Create new user record
-                        return firebase.database().ref('users/' + user.uid).set({
-                            username: user.displayName,
+                        return database.ref('users/' + user.uid).set({
+                            username: user.displayName || user.email.split('@')[0],
                             email: user.email,
                             stats: {
                                 gamesPlayed: 0,
