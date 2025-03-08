@@ -2173,3 +2173,12 @@ body.about-page {
     text-align: center;
     width: 60px;
 }
+
+.leaderboard-table tr.current-user {
+    background: rgba(76, 175, 80, 0.1) !important;
+    border: 2px solid #4CAF50;
+}
+
+.leaderboard-table tr.current-user:hover {
+    background: rgba(76, 175, 80, 0.15) !important;
+}

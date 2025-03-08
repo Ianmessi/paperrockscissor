@@ -130,6 +130,11 @@ function loadLeaderboard() {
                 const rank = index + 1;
                 const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
                 
+                // Add current-user class if this is the logged-in user
+                if (user.username === currentUserEmail.split('@')[0]) {
+                    row.classList.add('current-user');
+                }
+                
                 row.innerHTML = `
                     <td>${rankDisplay}</td>
                     <td>${user.username}</td>
