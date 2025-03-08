@@ -1,6 +1,5 @@
 // Initialize Firebase Auth
 const auth = firebase.auth();
-const database = firebase.database();
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
@@ -51,9 +50,15 @@ function signup() {
 
     auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            const user = userCredential.user;
+            // Update profile with username
+            return userCredential.user.updateProfile({
+                displayName: username
+            });
+        })
+        .then(() => {
             // Create user record in database
-            return database.ref('users/' + user.uid).set({
+            const user = auth.currentUser;
+            return firebase.database().ref('users/' + user.uid).set({
                 username: username,
                 email: email,
                 stats: {
@@ -84,12 +89,12 @@ function signInWithGoogle() {
         .then((result) => {
             const user = result.user;
             // Check if user exists in database
-            return database.ref('users/' + user.uid).once('value')
+            return firebase.database().ref('users/' + user.uid).once('value')
                 .then((snapshot) => {
                     if (!snapshot.exists()) {
                         // Create new user record
-                        return database.ref('users/' + user.uid).set({
-                            username: user.displayName || user.email.split('@')[0],
+                        return firebase.database().ref('users/' + user.uid).set({
+                            username: user.displayName,
                             email: user.email,
                             stats: {
                                 gamesPlayed: 0,
@@ -164,31 +169,4 @@ auth.onAuthStateChanged((user) => {
     if (user && window.location.pathname.includes('login.html')) {
         window.location.href = 'index.html';
     }
-});
-
-function createUserData(user) {
-    const userRef = ref(database, `users/${user.uid}`);
-    return set(userRef, {
-        email: user.email,
-        stats: {
-            gamesPlayed: 0,
-            totalWins: 0,
-            totalLosses: 0,
-            totalDraws: 0,
-            winRate: 0
-        },
-        createdAt: serverTimestamp()
-    });
-}
-
-// When user signs up
-async function signUp(email, password) {
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // Store user data including email
-        await createUserData(userCredential.user);
-        return userCredential;
-    } catch (error) {
-        throw error;
-    }
-} 
+}); 
