@@ -1865,7 +1865,7 @@ body.about-page {
     font-family: 'Poppins', sans-serif;
     padding: 20px;
     width: 100%;
-    overflow-x: hidden;  /* Prevent horizontal scroll on the page */
+    overflow-x: hidden;
 }
 
 .leaderboard-container {
@@ -1876,7 +1876,6 @@ body.about-page {
     border-radius: 20px;
     padding: 30px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;  /* Allow scrolling within the container */
 }
 
 .leaderboard-container h1 {
@@ -2022,18 +2021,19 @@ body.about-page {
 
 .leaderboard-table {
     width: 100%;
-    min-width: 600px;  /* Minimum width to prevent squishing */
     border-collapse: collapse;
     margin-top: 20px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
+    overflow: hidden;
 }
 
 .leaderboard-table th,
 .leaderboard-table td {
-    padding: 15px;
+    padding: 15px 10px;
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    word-break: break-word;
 }
 
 .leaderboard-table th {
@@ -2072,20 +2072,26 @@ body.about-page {
 
     .leaderboard-table th,
     .leaderboard-table td {
-        padding: 12px 8px;
+        padding: 12px 6px;
         font-size: 0.9em;
+    }
+
+    .leaderboard-table th:nth-child(4),
+    .leaderboard-table td:nth-child(4) {
+        display: none;  /* Hide Games column on mobile */
     }
 }
 
 @media (max-width: 480px) {
     .leaderboard-container {
         padding: 10px;
+        margin: 10px;
     }
 
     .leaderboard-table th,
     .leaderboard-table td {
-        padding: 10px 6px;
-        font-size: 0.85em;
+        padding: 8px 4px;
+        font-size: 0.8em;
     }
 }
 
@@ -2177,47 +2183,4 @@ body.about-page {
     .submit-btn {
         width: 100%;
     }
-}
-
-.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.leaderboard-table th,
-.leaderboard-table td {
-    padding: 15px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.leaderboard-table th {
-    background: rgba(0, 0, 0, 0.2);
-    color: #fff;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.9em;
-}
-
-.leaderboard-table tr:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.leaderboard-table td:first-child,
-.leaderboard-table th:first-child {
-    text-align: center;
-    width: 60px;
-}
-
-.leaderboard-table tr.current-user {
-    background: rgba(76, 175, 80, 0.1) !important;
-    border: 2px solid #4CAF50;
-}
-
-.leaderboard-table tr.current-user:hover {
-    background: rgba(76, 175, 80, 0.15) !important;
 }
