@@ -3,7 +3,7 @@ import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/fire
 import userFirebaseConfig from './firebase-users-config.js';
 
 // Initialize the second Firebase app for user profiles
-const userApp = initializeApp(userFirebaseConfig, 'userApp');
+const userApp = initializeApp(userFirebaseConfig, 'userProfilesApp');
 const userDb = getDatabase(userApp);
 
 // Function to save user profile
@@ -24,6 +24,7 @@ export async function saveUserProfile(userId, email) {
         };
 
         await set(ref(userDb, `users/${userId}`), profile);
+        console.log('Profile saved successfully:', profile);
         return true;
     } catch (error) {
         console.error('Error saving user profile:', error);

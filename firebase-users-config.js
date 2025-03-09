@@ -1,16 +1,12 @@
 // Your web app's Firebase configuration for user profiles
 const userFirebaseConfig = {
-    // Copy your config from Firebase console here
-    // It will look something like this:
-    /*
-    apiKey: "your-api-key",
-    authDomain: "your-project.firebaseapp.com",
-    databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-    projectId: "your-project",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "your-sender-id",
-    appId: "your-app-id"
-    */
+    apiKey: "AIzaSyBjxUxvMyh8G4OQjIpIkWjHyFWQyAHXSz8",
+    authDomain: "rock-paper-scissors-users.firebaseapp.com",
+    databaseURL: "https://rock-paper-scissors-users-default-rtdb.firebaseio.com",
+    projectId: "rock-paper-scissors-users",
+    storageBucket: "rock-paper-scissors-users.appspot.com",
+    messagingSenderId: "724707皇",
+    appId: "1:724707皇:web:3d4f5c8b9e0f1a2b3c4d5e"
 };
 
 export default userFirebaseConfig; 

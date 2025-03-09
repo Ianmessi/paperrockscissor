@@ -1,14 +1,12 @@
-// Firebase configuration
-// IMPORTANT: Replace these values with your actual Firebase configuration from the Firebase console
+// Your web app's Firebase configuration for the main game
 const firebaseConfig = {
-  apiKey: "AIzaSyCIY4cKmJWF6Nw6y8XzMt6--GofhUtZYw8",
-  authDomain: "second-pjt-40f90.firebaseapp.com",
-  databaseURL: "https://second-pjt-40f90-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "second-pjt-40f90",
-  storageBucket: "second-pjt-40f90.firebasestorage.app",
-  messagingSenderId: "515892192533",
-  appId: "1:515892192533:web:3033d0ed65acc46649f51c",
-  measurementId: "G-VP0JE7ZZGQ"
+    apiKey: "AIzaSyBjxUxvMyh8G4OQjIpIkWjHyFWQyAHXSz8",
+    authDomain: "rock-paper-scissors-game.firebaseapp.com",
+    databaseURL: "https://rock-paper-scissors-game-default-rtdb.firebaseio.com",
+    projectId: "rock-paper-scissors-game",
+    storageBucket: "rock-paper-scissors-game.appspot.com",
+    messagingSenderId: "724707皇",
+    appId: "1:724707皇:web:3d4f5c8b9e0f1a2b3c4d5e"
 };
 
 export default firebaseConfig;
