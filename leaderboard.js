@@ -96,11 +96,14 @@ function loadLeaderboard() {
                 const userData = childSnapshot.val();
                 console.log('User data:', userData); // Debug log
                 if (userData.stats) {
-                    // Get username, fallback to email if no username
-                    const displayName = userData.username || (userData.email ? userData.email.split('@')[0] : 'Unknown');
+                    // Use the current user's email if this is their entry
+                    const email = childSnapshot.key === currentUser?.uid ? currentUserEmail : userData.email || '';
+                    console.log('Email found:', email); // Debug log
+                    const username = email.split('@')[0];
+                    console.log('Username extracted:', username); // Debug log
                     
                     users.push({
-                        username: displayName,
+                        username: username || 'Unknown',
                         games: userData.stats.gamesPlayed || 0,
                         wins: userData.stats.totalWins || 0,
                         winRate: userData.stats.gamesPlayed ? 
@@ -128,7 +131,7 @@ function loadLeaderboard() {
                 const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
                 
                 // Add current-user class if this is the logged-in user
-                if (currentUserEmail && (user.username === currentUserEmail.split('@')[0] || user.username === userData.username)) {
+                if (user.username === currentUserEmail.split('@')[0]) {
                     row.classList.add('current-user');
                 }
                 

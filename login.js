@@ -114,84 +114,78 @@ loginForm.addEventListener('keypress', (e) => {
 });
 
 // Signup function
-function signup() {
+async function signup() {
     const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    
+
+    // Clear previous error message
+    signupErrorMessage.textContent = '';
+
+    // Validate inputs
     if (!email || !password || !confirmPassword) {
         signupErrorMessage.textContent = 'Please fill in all fields';
         return;
     }
-    
+
     if (password !== confirmPassword) {
         signupErrorMessage.textContent = 'Passwords do not match';
         return;
     }
-    
+
     if (password.length < 6) {
         signupErrorMessage.textContent = 'Password must be at least 6 characters';
         return;
     }
-    
-    // Show loading state
+
+    // Disable signup button and show loading state
     signupButton.disabled = true;
     signupButton.textContent = 'Creating account...';
-    
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            // Set display name (username) from email
-            const user = userCredential.user;
-            const username = email.split('@')[0]; // Use part before @ as username
-            
-            return updateProfile(user, {
-                displayName: username
-            }).then(() => {
-                console.log("Display name set:", username);
-                
-                // Create user record in database with initial stats
-                return set(ref(database, 'users/' + user.uid), {
-                    email: user.email,
-                    username: username,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString(),
-                    stats: {
-                        gamesPlayed: 0,
-                        totalWins: 0,
-                        totalLosses: 0,
-                        totalDraws: 0,
-                        winRate: 0,
-                        lastUpdated: serverTimestamp()
-                    }
-                });
-            });
-        })
-        .then(() => {
-            console.log("User record created in database");
-            // Redirect to home page
-            window.location.href = 'index.html';
-        })
-        .catch((error) => {
-            // Reset loading state
-            signupButton.disabled = false;
-            signupButton.textContent = 'Sign Up';
-            
-            console.error("Signup error:", error);
-            // Handle errors
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    signupErrorMessage.textContent = 'Email already in use';
-                    break;
-                case 'auth/invalid-email':
-                    signupErrorMessage.textContent = 'Invalid email format';
-                    break;
-                case 'auth/weak-password':
-                    signupErrorMessage.textContent = 'Password is too weak';
-                    break;
-                default:
-                    signupErrorMessage.textContent = 'Signup failed: ' + error.message;
+
+    try {
+        // Create user account
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Initialize user data in the database
+        await set(ref(database, `users/${user.uid}`), {
+            email: user.email,
+            username: user.email.split('@')[0],
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp(),
+            photoURL: user.photoURL || '',
+            stats: {
+                gamesPlayed: 0,
+                totalWins: 0,
+                totalLosses: 0,
+                totalDraws: 0,
+                winRate: 0,
+                lastUpdated: serverTimestamp()
             }
         });
+
+        // Redirect to game page
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error("Signup error:", error);
+        signupButton.disabled = false;
+        signupButton.textContent = 'Sign Up';
+
+        // Handle specific error cases
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                signupErrorMessage.textContent = 'Email already in use';
+                break;
+            case 'auth/invalid-email':
+                signupErrorMessage.textContent = 'Invalid email format';
+                break;
+            case 'auth/weak-password':
+                signupErrorMessage.textContent = 'Password is too weak';
+                break;
+            default:
+                signupErrorMessage.textContent = 'Signup failed: ' + error.message;
+        }
+    }
 }
 
 // Signup button click
@@ -205,77 +199,64 @@ signupForm.addEventListener('keypress', (e) => {
     }
 });
 
-// Google Sign-in functionality (shared between login and signup)
-function signInWithGoogle(buttonElement, errorElement, isSignup = false) {
+// Google Sign-in functionality
+async function signInWithGoogle(buttonElement, errorElement, isSignup = false) {
+    // Clear any existing error messages
+    errorElement.textContent = '';
+
     // Show loading state
+    const originalText = buttonElement.innerHTML;
     buttonElement.disabled = true;
-    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-    
-    signInWithPopup(auth, googleProvider)
-        .then((result) => {
-            // This gives you a Google Access Token
-            const user = result.user;
-            
-            // Check if user exists in database, if not create a record
-            return get(ref(database, 'users/' + user.uid))
-                .then((snapshot) => {
-                    if (!snapshot.exists()) {
-                        // Create new user record
-                        return set(ref(database, 'users/' + user.uid), {
-                            email: user.email,
-                            username: user.displayName || user.email.split('@')[0],
-                            photoURL: user.photoURL || null,
-                            createdAt: new Date().toISOString(),
-                            lastLogin: new Date().toISOString(),
-                            stats: {
-                                gamesPlayed: 0,
-                                totalWins: 0,
-                                totalLosses: 0,
-                                totalDraws: 0,
-                                winRate: 0,
-                                lastUpdated: serverTimestamp()
-                            }
-                        });
-                    } else {
-                        // Update last login
-                        return set(ref(database, 'users/' + user.uid + '/lastLogin'), new Date().toISOString());
-                    }
-                });
-        })
-        .then(() => {
-            // Redirect to home page
-            window.location.href = 'index.html';
-        })
-        .catch((error) => {
-            // Handle errors
-            buttonElement.disabled = false;
-            
-            // Reset button text based on whether it's login or signup
-            if (isSignup) {
-                buttonElement.innerHTML = '<i class="fab fa-google"></i> Sign up with Google';
-            } else {
-                buttonElement.innerHTML = '<i class="fab fa-google"></i> Sign in with Google';
-            }
-            
-            console.error("Google sign-in error:", error);
-            
-            switch (error.code) {
-                case 'auth/popup-closed-by-user':
-                    errorElement.textContent = 'Sign-in cancelled. Please try again.';
-                    break;
-                case 'auth/popup-blocked':
-                    errorElement.textContent = 'Pop-up blocked by browser. Please allow pop-ups for this site.';
-                    break;
-                case 'auth/cancelled-popup-request':
-                    errorElement.textContent = 'Multiple pop-up requests. Please try again.';
-                    break;
-                case 'auth/network-request-failed':
-                    errorElement.textContent = 'Network error. Please check your connection and try again.';
-                    break;
-                default:
-                    errorElement.textContent = 'Google sign-in failed: ' + (error.message || 'Please try again');
-            }
-        });
+    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        // Check if this is a new user (sign up)
+        if (result.additionalUserInfo.isNewUser) {
+            // Initialize user data in the database
+            await set(ref(database, `users/${user.uid}`), {
+                email: user.email,
+                username: user.email.split('@')[0],
+                createdAt: serverTimestamp(),
+                lastLogin: serverTimestamp(),
+                photoURL: user.photoURL || '',
+                stats: {
+                    gamesPlayed: 0,
+                    totalWins: 0,
+                    totalLosses: 0,
+                    totalDraws: 0,
+                    winRate: 0,
+                    lastUpdated: serverTimestamp()
+                }
+            });
+        } else {
+            // Update last login for existing users
+            await set(ref(database, `users/${user.uid}/lastLogin`), serverTimestamp());
+        }
+
+        // Redirect to game page
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error("Google sign-in error:", error);
+        
+        // Reset button
+        buttonElement.disabled = false;
+        buttonElement.innerHTML = originalText;
+
+        // Handle specific error cases
+        switch (error.code) {
+            case 'auth/popup-closed-by-user':
+                errorElement.textContent = 'Sign-in cancelled';
+                break;
+            case 'auth/popup-blocked':
+                errorElement.textContent = 'Popup blocked by browser';
+                break;
+            default:
+                errorElement.textContent = 'Sign-in failed: ' + error.message;
+        }
+    }
 }
 
 // Google login button
