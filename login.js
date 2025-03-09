@@ -114,84 +114,69 @@ loginForm.addEventListener('keypress', (e) => {
 });
 
 // Signup function
-function signup() {
+async function signup() {
+    const username = document.getElementById('signupUsername').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    if (!email || !password || !confirmPassword) {
+
+    // Validate inputs
+    if (!email || !password || !username) {
         signupErrorMessage.textContent = 'Please fill in all fields';
         return;
     }
-    
-    if (password !== confirmPassword) {
-        signupErrorMessage.textContent = 'Passwords do not match';
-        return;
-    }
-    
+
     if (password.length < 6) {
         signupErrorMessage.textContent = 'Password must be at least 6 characters';
         return;
     }
-    
-    // Show loading state
-    signupButton.disabled = true;
-    signupButton.textContent = 'Creating account...';
-    
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            // Set display name (username) from email
-            const user = userCredential.user;
-            const username = email.split('@')[0]; // Use part before @ as username
-            
-            return updateProfile(user, {
-                displayName: username
-            }).then(() => {
-                console.log("Display name set:", username);
-                
-                // Create user record in database with initial stats
-                return set(ref(database, 'users/' + user.uid), {
-                    email: user.email,
-                    username: username,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString(),
-                    stats: {
-                        gamesPlayed: 0,
-                        totalWins: 0,
-                        totalLosses: 0,
-                        totalDraws: 0,
-                        winRate: 0,
-                        lastUpdated: serverTimestamp()
-                    }
-                });
-            });
-        })
-        .then(() => {
-            console.log("User record created in database");
-            // Redirect to home page
-            window.location.href = 'index.html';
-        })
-        .catch((error) => {
-            // Reset loading state
-            signupButton.disabled = false;
-            signupButton.textContent = 'Sign Up';
-            
-            console.error("Signup error:", error);
-            // Handle errors
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    signupErrorMessage.textContent = 'Email already in use';
-                    break;
-                case 'auth/invalid-email':
-                    signupErrorMessage.textContent = 'Invalid email format';
-                    break;
-                case 'auth/weak-password':
-                    signupErrorMessage.textContent = 'Password is too weak';
-                    break;
-                default:
-                    signupErrorMessage.textContent = 'Signup failed: ' + error.message;
+
+    try {
+        signupButton.disabled = true;
+        signupButton.textContent = 'Creating account...';
+
+        // Create user in Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Save additional user data to Realtime Database
+        const userRef = ref(database, `users/${user.uid}`);
+        await set(userRef, {
+            username: username,
+            email: email,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+            photoURL: user.photoURL || "",
+            stats: {
+                gamesPlayed: 0,
+                totalWins: 0,
+                totalLosses: 0,
+                totalDraws: 0,
+                winRate: 0,
+                lastUpdated: Date.now()
             }
         });
+
+        // Redirect to game page
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error("Signup error:", error);
+        signupButton.disabled = false;
+        signupButton.textContent = 'Sign Up';
+
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                signupErrorMessage.textContent = 'Email already in use';
+                break;
+            case 'auth/invalid-email':
+                signupErrorMessage.textContent = 'Invalid email format';
+                break;
+            case 'auth/weak-password':
+                signupErrorMessage.textContent = 'Password is too weak';
+                break;
+            default:
+                signupErrorMessage.textContent = 'Signup failed: ' + error.message;
+        }
+    }
 }
 
 // Signup button click
