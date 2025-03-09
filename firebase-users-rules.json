@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "users": {
+      ".read": true,  // Allow reading all user profiles for the leaderboard
+      "$userId": {
+        ".write": "$userId === auth.uid",  // Users can only write their own profile
+        ".validate": "newData.hasChildren(['email', 'username', 'lastUpdated'])",  // Require these fields
+        "email": {
+          ".validate": "newData.isString() && newData.val().contains('@')"
+        },
+        "username": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 30"
+        },
+        "lastUpdated": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        }
+      }
+    }
+  }
+} 
