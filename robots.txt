@@ -1,6 +1,0 @@
-# Allow all search engines to crawl everything
-User-agent: *
-Allow: /
-
-# Sitemap location
-Sitemap: https://paperrockscissor.vercel.app/sitemap.xml 
