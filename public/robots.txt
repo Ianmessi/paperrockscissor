@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://paperrockscissor.vercel.app/sitemap.xml 
