@@ -3,11 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="CVdpu2TARTXuEqIFp8viXwxDJydkD_gHe2ThCsWT4to" />
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Read reviews from players of our Rock Paper Scissors game. Share your own experience and rate the game!">
+    <meta name="keywords" content="rock paper scissors reviews, game reviews, player feedback, game rating, player testimonials">
+    <meta name="author" content="Ian">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://paperrockscissor.vercel.app/reviews.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://paperrockscissor.vercel.app/reviews.html">
+    <meta property="og:title" content="Reviews - Rock Paper Scissors">
+    <meta property="og:description" content="Read reviews from players of our Rock Paper Scissors game. Share your own experience!">
+    <meta property="og:image" content="https://paperrockscissor.vercel.app/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://paperrockscissor.vercel.app/reviews.html">
+    <meta property="twitter:title" content="Reviews - Rock Paper Scissors">
+    <meta property="twitter:description" content="Read reviews from players of our Rock Paper Scissors game. Share your own experience!">
+    <meta property="twitter:image" content="https://paperrockscissor.vercel.app/og-image.jpg">
+    
     <title>Rock Paper Scissors - Reviews</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="reviews-page">
@@ -62,5 +85,18 @@
     <!-- Firebase Scripts -->
     <script type="module" src="firebase-config.js"></script>
     <script type="module" src="reviews.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ReviewPage",
+      "name": "Rock Paper Scissors Game Reviews",
+      "description": "Read reviews from players of our Rock Paper Scissors game.",
+      "url": "https://paperrockscissor.vercel.app/reviews.html",
+      "about": {
+        "@type": "WebApplication",
+        "name": "Rock Paper Scissors Game"
+      }
+    }
+    </script>
 </body>
 </html> 

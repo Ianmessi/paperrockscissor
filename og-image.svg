@@ -1,0 +1,42 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#2c3e50"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="200" cy="500" r="250" fill="#4a90e2" opacity="0.3"/>
+  <circle cx="1000" cy="150" r="200" fill="#e74c3c" opacity="0.3"/>
+  
+  <!-- Title -->
+  <text x="600" y="200" font-family="Poppins, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#ffffff">
+    Rock Paper Scissors
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="280" font-family="Poppins, sans-serif" font-size="40" text-anchor="middle" fill="#f5f6fa">
+    Play online for free!
+  </text>
+  
+  <!-- Game symbols -->
+  <g transform="translate(300, 400)">
+    <!-- Rock (fist) -->
+    <circle cx="0" cy="0" r="70" fill="#4a90e2"/>
+    <text x="0" y="20" font-family="Poppins, sans-serif" font-size="80" text-anchor="middle" fill="#ffffff">✊</text>
+  </g>
+  
+  <g transform="translate(600, 400)">
+    <!-- Paper (open hand) -->
+    <circle cx="0" cy="0" r="70" fill="#f5f6fa"/>
+    <text x="0" y="20" font-family="Poppins, sans-serif" font-size="80" text-anchor="middle" fill="#2c3e50">✋</text>
+  </g>
+  
+  <g transform="translate(900, 400)">
+    <!-- Scissors -->
+    <circle cx="0" cy="0" r="70" fill="#e74c3c"/>
+    <text x="0" y="20" font-family="Poppins, sans-serif" font-size="80" text-anchor="middle" fill="#ffffff">✌️</text>
+  </g>
+  
+  <!-- URL -->
+  <text x="600" y="580" font-family="Poppins, sans-serif" font-size="30" text-anchor="middle" fill="#f5f6fa">
+    paperrockscissor.vercel.app
+  </text>
+</svg> 
